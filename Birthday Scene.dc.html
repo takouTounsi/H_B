@@ -1,0 +1,835 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #07040c; overflow: hidden; }
+  * { box-sizing: border-box; }
+  a { color: #f7a8d0; text-decoration: none; }
+  a:hover { color: #ffd98a; }
+  @keyframes bs-fadein { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes bs-hint { 0%,100% { opacity: .35; } 50% { opacity: .75; } }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+</helmet>
+<div style="position: fixed; inset: 0; width: 100%; height: 100%; overflow: hidden; background: radial-gradient(120% 90% at 50% 20%, #241033 0%, #150a20 35%, #0a0512 70%, #050208 100%); font-family: 'Jost', sans-serif;">
+
+  <div ref="{{ setMount }}" style="position: absolute; inset: 0; width: 100%; height: 100%;"></div>
+
+  <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(60% 45% at 50% 62%, rgba(255,200,140,0.10), rgba(0,0,0,0) 70%); mix-blend-mode: screen;"></div>
+
+  <div style="position: absolute; left: 0; right: 0; top: 14%; display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 0 24px; pointer-events: none; text-align: center;">
+    <div style="font-family: 'Cormorant Garamond', serif; font-weight: 600; letter-spacing: 0.01em; line-height: 1.05; font-size: clamp(38px, 8vw, 104px);">{{ titleEls }}</div>
+    <div style="max-width: 620px; font-weight: 300; letter-spacing: 0.04em; line-height: 1.6; font-size: clamp(13px, 2vw, 19px);">{{ subEl }}</div>
+  </div>
+
+  <div style="position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; z-index: 5;">
+    <button onClick="{{ toggleSound }}" style="{{ soundBtnStyle }}" aria-label="Toggle music">{{ soundLabel }}</button>
+    <button onClick="{{ replay }}" style="{{ replayBtnStyle }}" aria-label="Replay animation">↻ Rejouer</button>
+  </div>
+
+  <div style="{{ hintStyle }}">♪ Activez le son pour la musique</div>
+
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;$preview&quot;: { &quot;width&quot;: &quot;100%&quot;, &quot;height&quot;: &quot;100%&quot; },
+  &quot;title&quot;: { &quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Happy Birthday Hedil&quot;, &quot;tsType&quot;: &quot;string&quot; },
+  &quot;subtitle&quot;: { &quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Wishing you a beautiful year filled with happiness, success and unforgettable moments.&quot;, &quot;tsType&quot;: &quot;string&quot; },
+  &quot;titleColorA&quot;: { &quot;editor&quot;: &quot;color&quot;, &quot;default&quot;: &quot;#ffd98a&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Couleurs du titre&quot; },
+  &quot;titleColorB&quot;: { &quot;editor&quot;: &quot;color&quot;, &quot;default&quot;: &quot;#f7a8d0&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Couleurs du titre&quot; }
+}">
+class Component extends DCLogic {
+  state = { reveal: false, revealSub: false, showReplay: false, soundOn: false, showHint: true };
+
+  // ---------- lifecycle ----------
+  componentDidMount() {
+    this.reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    this.dynamics = [];
+    this.flames = [];
+    this.layers = [];
+    this.candles = [];
+    this.cam = { angle: 0, radius: 9.5, height: 5.2, orbit: 0 };
+    this.fit = 1;
+    this._waitLibs();
+  }
+  componentWillUnmount() {
+    this._stop = true;
+    if (this.tl) this.tl.kill();
+    if (this.renderer) this.renderer.dispose();
+    if (this.audio) this._stopMusic();
+    window.removeEventListener('resize', this._onResize);
+  }
+  _waitLibs() {
+    if (this._stop) return;
+    if (window.THREE && window.gsap && this.mount) { this._init(); return; }
+    setTimeout(() => this._waitLibs(), 60);
+  }
+
+  // ---------- setup ----------
+  _init() {
+    const THREE = window.THREE;
+    const w = this.mount.clientWidth || window.innerWidth;
+    const h = this.mount.clientHeight || window.innerHeight;
+
+    const scene = new THREE.Scene();
+    scene.fog = new THREE.FogExp2(0x0a0512, 0.028);
+    this.scene = scene;
+
+    const camera = new THREE.PerspectiveCamera(42, w / h, 0.1, 100);
+    this.camera = camera;
+    this._computeFit(w, h);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(w, h);
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    renderer.toneMappingExposure = 1.15;
+    this.mount.appendChild(renderer.domElement);
+    this.renderer = renderer;
+
+    this.target = new THREE.Vector3(0, 1.35, 0);
+
+    // ---- lights ----
+    this.ambient = new THREE.AmbientLight(0x5a4a78, 0.5);
+    scene.add(this.ambient);
+
+    this.keyLight = new THREE.SpotLight(0xffe9c9, 0, 30, Math.PI / 4, 0.5, 1.2);
+    this.keyLight.position.set(0, 12, 4);
+    this.keyLight.target.position.set(0, 1, 0);
+    scene.add(this.keyLight, this.keyLight.target);
+
+    this.rimA = new THREE.PointLight(0xf7a8d0, 0.0, 22, 2);
+    this.rimA.position.set(-7, 5, -3);
+    this.rimB = new THREE.PointLight(0xb48fd8, 0.0, 22, 2);
+    this.rimB.position.set(7, 4, -4);
+    this.warm = new THREE.PointLight(0xffcf8a, 0.0, 12, 2);
+    this.warm.position.set(0, 4, 3);
+    scene.add(this.rimA, this.rimB, this.warm);
+
+    this._buildPlate();
+    this._buildCake();
+    this._buildCandles();
+    this._buildFloaters();
+    this._buildConfetti();
+
+    this._onResize = () => this._resize();
+    window.addEventListener('resize', this._onResize);
+
+    this.clock = new THREE.Clock();
+    this._loop();
+
+    if (this.reduced) { this._staticFinal(); }
+    else { this._buildTimeline(); }
+  }
+
+  _resize() {
+    if (!this.renderer) return;
+    const w = this.mount.clientWidth, h = this.mount.clientHeight;
+    this.camera.aspect = w / h; this.camera.updateProjectionMatrix();
+    this.renderer.setSize(w, h);
+    this._computeFit(w, h);
+  }
+
+  _computeFit(w, h) {
+    const aspect = w / h;
+    // portrait / narrow phones: dolly the camera back so the tall cake fits
+    this.fit = aspect >= 1 ? 1 : Math.min(2.2, 1 + (1 - aspect) * 1.15);
+  }
+
+  // ---------- geometry builders ----------
+  _buildPlate() {
+    const THREE = window.THREE;
+    const g = new THREE.Group();
+    // glossy plate
+    const plate = new THREE.Mesh(
+      new THREE.CylinderGeometry(3.4, 3.5, 0.28, 64),
+      new THREE.MeshStandardMaterial({ color: 0x1a1226, metalness: 0.9, roughness: 0.12, emissive: 0x140b1e, emissiveIntensity: 0.4 })
+    );
+    plate.position.y = 0.14;
+    g.add(plate);
+    // gold rim
+    const rim = new THREE.Mesh(
+      new THREE.TorusGeometry(3.42, 0.045, 16, 80),
+      new THREE.MeshStandardMaterial({ color: 0xffcf6b, metalness: 1, roughness: 0.25, emissive: 0x3a2600, emissiveIntensity: 0.5 })
+    );
+    rim.rotation.x = Math.PI / 2; rim.position.y = 0.28;
+    g.add(rim);
+    // light pool
+    const pool = new THREE.Mesh(
+      new THREE.CircleGeometry(6, 64),
+      new THREE.MeshBasicMaterial({ color: 0xffcf8a, transparent: true, opacity: 0.06, blending: THREE.AdditiveBlending, depthWrite: false })
+    );
+    pool.rotation.x = -Math.PI / 2; pool.position.y = 0.02;
+    g.add(pool);
+    this.plateGroup = g;
+    this.scene.add(g);
+  }
+
+  _buildCake() {
+    const THREE = window.THREE;
+    const specs = [
+      { r: 2.45, h: 0.75, color: 0xf0c6db },   // rose poudré
+      { r: 2.05, h: 0.62, color: 0xf6ead6 },   // cream
+      { r: 1.68, h: 0.58, color: 0xd6b8ec },   // mauve
+      { r: 1.30, h: 0.54, color: 0xf7c9de }    // rose
+    ];
+    let base = 0.28; // plate top
+    this.cakeTopY = base;
+    specs.forEach((s, i) => {
+      const grp = new THREE.Group();
+      const body = new THREE.Mesh(
+        new THREE.CylinderGeometry(s.r, s.r * 1.02, s.h, 64),
+        new THREE.MeshStandardMaterial({ color: s.color, roughness: 0.55, metalness: 0.05, emissive: s.color, emissiveIntensity: 0.0 })
+      );
+      grp.add(body);
+      // gold band on top edge
+      const band = new THREE.Mesh(
+        new THREE.TorusGeometry(s.r, 0.05, 12, 72),
+        new THREE.MeshStandardMaterial({ color: 0xffcf6b, metalness: 1, roughness: 0.3, emissive: 0x2a1c00, emissiveIntensity: 0.4 })
+      );
+      band.rotation.x = Math.PI / 2; band.position.y = s.h / 2;
+      grp.add(band);
+
+      // ---- chocolate ganache decoration ----
+      const choco = new THREE.MeshStandardMaterial({ color: 0x3a2013, roughness: 0.32, metalness: 0.3, emissive: 0x180b04, emissiveIntensity: 0.25 });
+      // glossy ganache lip running around the top edge
+      const lip = new THREE.Mesh(new THREE.TorusGeometry(s.r + 0.01, 0.085, 14, 90), choco);
+      lip.rotation.x = Math.PI / 2; lip.position.y = s.h / 2 - 0.03;
+      grp.add(lip);
+      // drips hanging over the edge
+      const dripCount = Math.round(s.r * 8);
+      for (let j = 0; j < dripCount; j++) {
+        const ang = (j / dripCount) * Math.PI * 2 + Math.random() * 0.15;
+        const len = 0.16 + Math.random() * 0.22;
+        const drip = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), choco);
+        drip.scale.set(1, len / 0.10, 1);
+        drip.position.set(Math.cos(ang) * s.r, s.h / 2 - 0.05 - len * 0.5, Math.sin(ang) * s.r);
+        const blob = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 8), choco);
+        blob.position.set(Math.cos(ang) * s.r, s.h / 2 - 0.05 - len, Math.sin(ang) * s.r);
+        grp.add(drip, blob);
+      }
+      // chocolate pieces on the exposed top ring of each tier
+      const nextR = specs[i + 1] ? specs[i + 1].r : null;
+      if (nextR) {
+        const ringR = (s.r + nextR) / 2;
+        const chipCount = Math.max(8, Math.round(ringR * 6));
+        for (let j = 0; j < chipCount; j++) {
+          const ang = (j / chipCount) * Math.PI * 2 + 0.25;
+          const chip = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.11, 0.05), choco);
+          chip.position.set(Math.cos(ang) * ringR, s.h / 2 + 0.05, Math.sin(ang) * ringR);
+          chip.rotation.y = Math.random() * Math.PI;
+          chip.rotation.z = (Math.random() - 0.5) * 0.5;
+          grp.add(chip);
+        }
+      }
+
+      const targetY = base + s.h / 2;
+      grp.userData = { targetY, body };
+      grp.position.y = 13 + i * 0.5;
+      grp.visible = false;
+      this.scene.add(grp);
+      this.layers.push(grp);
+      base += s.h;
+      this.cakeTopY = base;
+    });
+  }
+
+  _digitCells() {
+    const pat = ['111', '001', '111', '100', '111']; // digit "2"
+    const sp = 0.30, gap = 0.5;
+    const digitW = 2 * sp;
+    const centers = [-(digitW / 2 + gap / 2), (digitW / 2 + gap / 2)];
+    const d0 = [], d1 = [];
+    for (let r = 0; r < 5; r++) {
+      for (let c = 0; c < 3; c++) {
+        if (pat[r][c] === '1') {
+          const lx = (c - 1) * sp, lz = (r - 2) * sp;
+          d0.push([centers[0] + lx, lz]);
+          d1.push([centers[1] + lx, lz]);
+        }
+      }
+    }
+    // interleave into symmetric pairs
+    const pairs = [];
+    for (let i = 0; i < d0.length; i++) pairs.push([d0[i], d1[i]]);
+    return pairs; // 11 pairs = 22 candles
+  }
+
+  _buildCandles() {
+    const THREE = window.THREE;
+    const pairs = this._digitCells();
+    const topY = this.cakeTopY;
+    const candleH = 0.72, candleR = 0.048;
+    const colors = [0xf7c9de, 0xffffff, 0xd6b8ec, 0xffe6b0];
+    this.candlePairs = [];
+    pairs.forEach((pair, pi) => {
+      const grpPair = [];
+      pair.forEach((pos, k) => {
+        const grp = new THREE.Group();
+        const idx = this.candles.length;
+        const body = new THREE.Mesh(
+          new THREE.CylinderGeometry(candleR, candleR, candleH, 16),
+          new THREE.MeshStandardMaterial({ color: colors[idx % colors.length], roughness: 0.35, metalness: 0.1, emissive: 0x000000 })
+        );
+        // spiral stripe hint via a thin band
+        const wick = new THREE.Mesh(
+          new THREE.CylinderGeometry(0.012, 0.012, 0.09, 6),
+          new THREE.MeshStandardMaterial({ color: 0x2a2a2a })
+        );
+        wick.position.y = candleH / 2 + 0.04;
+        grp.add(body, wick);
+
+        // flame group (hidden until ignite)
+        const flame = new THREE.Group();
+        const outer = new THREE.Mesh(
+          new THREE.ConeGeometry(0.075, 0.26, 12),
+          new THREE.MeshBasicMaterial({ color: 0xff9a3c, transparent: true, opacity: 0.75, blending: THREE.AdditiveBlending, depthWrite: false })
+        );
+        outer.position.y = 0.13;
+        const inner = new THREE.Mesh(
+          new THREE.ConeGeometry(0.035, 0.15, 10),
+          new THREE.MeshBasicMaterial({ color: 0xfff2c0, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false })
+        );
+        inner.position.y = 0.10;
+        const glow = new THREE.Sprite(new THREE.SpriteMaterial({
+          map: this._glowTex(), color: 0xffcf7a, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false
+        }));
+        glow.scale.set(0.6, 0.6, 0.6); glow.position.y = 0.12;
+        flame.add(glow, outer, inner);
+        flame.position.y = candleH / 2 + 0.09;
+        flame.visible = false;
+        flame.userData = { phase: Math.random() * 6.28, outer, inner, glow };
+        grp.add(flame);
+        this.flames.push(flame);
+
+        grp.userData = {
+          targetY: topY + candleH / 2,
+          x: pos[0], z: pos[1], flame
+        };
+        grp.position.set(pos[0], 13 + Math.random() * 2, pos[1]);
+        grp.visible = false;
+        this.scene.add(grp);
+        this.candles.push(grp);
+        grpPair.push(grp);
+      });
+      this.candlePairs.push(grpPair);
+    });
+  }
+
+  _glowTex() {
+    if (this._gtex) return this._gtex;
+    const c = document.createElement('canvas'); c.width = c.height = 64;
+    const ctx = c.getContext('2d');
+    const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+    g.addColorStop(0, 'rgba(255,240,200,1)');
+    g.addColorStop(0.4, 'rgba(255,190,110,0.6)');
+    g.addColorStop(1, 'rgba(255,150,80,0)');
+    ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
+    this._gtex = new window.THREE.CanvasTexture(c);
+    return this._gtex;
+  }
+
+  _buildFloaters() {
+    const THREE = window.THREE;
+    const n = 160;
+    const pos = new Float32Array(n * 3);
+    for (let i = 0; i < n; i++) {
+      pos[i * 3] = (Math.random() - 0.5) * 20;
+      pos[i * 3 + 1] = Math.random() * 12 - 1;
+      pos[i * 3 + 2] = (Math.random() - 0.5) * 16 - 2;
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const mat = new THREE.PointsMaterial({ size: 0.045, color: 0xffe6c0, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false, map: this._glowTex() });
+    this.floaters = new THREE.Points(geo, mat);
+    this.scene.add(this.floaters);
+  }
+
+  _buildConfetti() {
+    const THREE = window.THREE;
+    const n = 220;
+    const pos = new Float32Array(n * 3);
+    const col = new Float32Array(n * 3);
+    this.confVel = [];
+    const palette = [[247, 168, 208], [255, 207, 107], [180, 143, 216], [255, 255, 255]];
+    for (let i = 0; i < n; i++) {
+      pos[i * 3] = (Math.random() - 0.5) * 14;
+      pos[i * 3 + 1] = 8 + Math.random() * 10;
+      pos[i * 3 + 2] = (Math.random() - 0.5) * 8 - 1;
+      const c = palette[i % palette.length];
+      col[i * 3] = c[0] / 255; col[i * 3 + 1] = c[1] / 255; col[i * 3 + 2] = c[2] / 255;
+      this.confVel.push({ vy: 0.5 + Math.random() * 0.7, sway: 0.4 + Math.random() * 0.8, ph: Math.random() * 6.28 });
+    }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    const mat = new THREE.PointsMaterial({ size: 0.14, vertexColors: true, transparent: true, opacity: 0, depthWrite: false });
+    this.confetti = new THREE.Points(geo, mat);
+    this.confetti.visible = false;
+    this.scene.add(this.confetti);
+    this.confActive = false;
+  }
+
+  // ---------- timeline ----------
+  _buildTimeline() {
+    const gsap = window.gsap;
+    const tl = gsap.timeline();
+    this.tl = tl;
+
+    // intro: light ramp + camera settle
+    tl.to(this.cam, { radius: 7.2, height: 3.1, duration: 2.2, ease: 'power2.inOut' }, 0);
+    tl.to(this.keyLight, { intensity: 1.4, duration: 1.6, ease: 'power2.out' }, 0.2);
+    tl.to(this.rimA, { intensity: 0.7, duration: 1.6 }, 0.2);
+    tl.to(this.rimB, { intensity: 0.6, duration: 1.6 }, 0.2);
+    tl.to(this.ambient, { intensity: 0.65, duration: 1.6 }, 0.2);
+
+    // cake layers
+    this.layers.forEach((L, i) => { tl.add(() => this._dropLayer(i), 1.3 + i * 0.85); });
+
+    // candles two-by-two
+    const candleStart = 1.3 + this.layers.length * 0.85 + 0.4;
+    this.candlePairs.forEach((pair, i) => { tl.add(() => this._dropPair(i), candleStart + i * 0.3); });
+
+    const ignite = candleStart + this.candlePairs.length * 0.3 + 0.9;
+    this.candles.forEach((c, i) => { tl.add(() => this._ignite(i), ignite + i * 0.05); });
+
+    const finale = ignite + this.candles.length * 0.05 + 0.4;
+    tl.add(() => this._startFinale(), finale);
+    tl.add(() => this._celebrateBurst(), finale + 0.8);
+    tl.add(() => this.setState({ reveal: true }), finale + 0.8);
+    tl.add(() => this.setState({ revealSub: true }), finale + 2.4);
+    tl.add(() => this.setState({ showReplay: true }), finale + 3.6);
+  }
+
+  _dropLayer(i) {
+    const L = this.layers[i]; if (!L) return;
+    L.visible = true; L.position.y = 12;
+    window.gsap.to(L.position, {
+      y: L.userData.targetY, duration: 1.0, ease: 'bounce.out',
+      onComplete: () => { this._plateShake(); this._sugarBurst(L.userData.targetY, i); this._sfx('impact'); }
+    });
+  }
+
+  _dropPair(i) {
+    const pair = this.candlePairs[i]; if (!pair) return;
+    pair.forEach((c, k) => {
+      c.visible = true; c.position.y = 12 + k;
+      window.gsap.to(c.position, {
+        y: c.userData.targetY, duration: 0.85, ease: 'bounce.out',
+        onComplete: () => { if (k === 0) { this._plateShake(0.5); this._sfx('tick'); } }
+      });
+    });
+  }
+
+  _ignite(i) {
+    const c = this.candles[i]; if (!c) return;
+    const flame = c.userData.flame;
+    flame.visible = true;
+    flame.scale.set(0.1, 0.1, 0.1);
+    window.gsap.to(flame.scale, { x: 1, y: 1, z: 1, duration: 0.35, ease: 'back.out(2)' });
+    this._sparkAt(new window.THREE.Vector3(c.userData.x, c.userData.targetY + 0.5, c.userData.z));
+    this._sfx('spark');
+  }
+
+  _startFinale() {
+    this.finale = true;
+    this.cam.orbit = 0.16;
+    const gsap = window.gsap;
+    gsap.to(this.cam, { height: 3.4, duration: 6, ease: 'sine.inOut' });
+    // cake glow up
+    this.layers.forEach(L => gsap.to(L.userData.body.material, { emissiveIntensity: 0.35, duration: 2 }));
+    gsap.to(this.warm, { intensity: 1.6, duration: 2 });
+    gsap.to(this.rimA, { intensity: 1.2, duration: 2 });
+    gsap.to(this.rimB, { intensity: 1.1, duration: 2 });
+    gsap.to(this.ambient, { intensity: 0.9, duration: 2 });
+    gsap.to(this.floaters.material, { opacity: 0.85, duration: 2 });
+    // confetti
+    this.confActive = true; this.confetti.visible = true;
+    gsap.to(this.confetti.material, { opacity: 0.95, duration: 1.2 });
+    // rockets from the sides
+    [-1, 1, -1, 1, -1, 1].forEach((side, k) => setTimeout(() => { if (!this._stop) this._launchRocket(side); }, 200 + k * 450));
+    // periodic fireworks (denser: 1-2 bursts each tick)
+    this._fwTimer = setInterval(() => {
+      if (this._stop || !this.finale) return;
+      const shots = 1 + Math.round(Math.random());
+      for (let s = 0; s < shots; s++) {
+        const p = new window.THREE.Vector3((Math.random() - 0.5) * 12, 4 + Math.random() * 3.5, -1 - Math.random() * 4);
+        this._firework(p);
+      }
+    }, 480);
+    // occasional rocket relaunch to keep the sky busy
+    this._rocketTimer = setInterval(() => {
+      if (this._stop || !this.finale) return;
+      this._launchRocket(Math.random() < 0.5 ? -1 : 1);
+    }, 1600);
+    if (this.state.soundOn) this._musicSwell();
+  }
+
+  // ---------- particle effects ----------
+  _addBurst(count, origin, opts) {
+    const THREE = window.THREE;
+    const pos = new Float32Array(count * 3);
+    for (let i = 0; i < count; i++) { pos[i * 3] = origin.x; pos[i * 3 + 1] = origin.y; pos[i * 3 + 2] = origin.z; }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    const mat = new THREE.PointsMaterial({ size: opts.size, color: opts.color, transparent: true, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false, map: this._glowTex() });
+    const pts = new THREE.Points(geo, mat);
+    this.scene.add(pts);
+    const vel = [];
+    for (let i = 0; i < count; i++) vel.push(opts.vel(i));
+    const maxLife = opts.life;
+    const dyn = {
+      life: maxLife,
+      update: (dt) => {
+        dyn.life -= dt;
+        const arr = geo.attributes.position.array;
+        for (let i = 0; i < count; i++) {
+          vel[i].y -= (opts.gravity || 2.2) * dt;
+          arr[i * 3] += vel[i].x * dt;
+          arr[i * 3 + 1] += vel[i].y * dt;
+          arr[i * 3 + 2] += vel[i].z * dt;
+        }
+        geo.attributes.position.needsUpdate = true;
+        mat.opacity = Math.max(0, dyn.life / maxLife);
+        return dyn.life > 0;
+      },
+      dispose: () => { this.scene.remove(pts); geo.dispose(); mat.dispose(); }
+    };
+    this.dynamics.push(dyn);
+    return dyn;
+  }
+
+  _sugarBurst(y, i) {
+    const THREE = window.THREE;
+    const r = this.layers[i] ? this.layers[i].userData.body.geometry.parameters.radiusTop : 2;
+    this._addBurst(26, new THREE.Vector3(0, y, 0), {
+      size: 0.09, color: 0xffe0b0, life: 0.9, gravity: 3,
+      vel: () => { const a = Math.random() * 6.28; const s = 1.2 + Math.random() * 1.6; return { x: Math.cos(a) * s * (r / 2.2), y: 1.4 + Math.random() * 1.2, z: Math.sin(a) * s * (r / 2.2) }; }
+    });
+  }
+
+  _sparkAt(p) {
+    this._addBurst(16, p, {
+      size: 0.06, color: 0xfff0c0, life: 0.5, gravity: 2,
+      vel: () => { const a = Math.random() * 6.28; const s = 0.8 + Math.random(); return { x: Math.cos(a) * s, y: 0.6 + Math.random(), z: Math.sin(a) * s }; }
+    });
+  }
+
+  _firework(origin) {
+    const colors = [0xffcf6b, 0xf7a8d0, 0xb48fd8, 0xffffff, 0xffd98a];
+    const col = colors[Math.floor(Math.random() * colors.length)];
+    this._addBurst(90, origin, {
+      size: 0.12, color: col, life: 1.5, gravity: 2.4,
+      vel: () => { const a = Math.random() * 6.28; const b = Math.acos(2 * Math.random() - 1); const s = 2.4 + Math.random() * 2.2; return { x: Math.sin(b) * Math.cos(a) * s, y: Math.cos(b) * s, z: Math.sin(b) * Math.sin(a) * s * 0.6 }; }
+    });
+    this._sfx('pop');
+  }
+
+  _celebrateBurst() {
+    const THREE = window.THREE;
+    for (let k = 0; k < 6; k++) {
+      setTimeout(() => {
+        if (this._stop) return;
+        const p = new THREE.Vector3((Math.random() - 0.5) * 11, 4 + Math.random() * 3.5, -1 - Math.random() * 4);
+        this._firework(p);
+      }, k * 160);
+    }
+    this._launchRocket(-1);
+    setTimeout(() => { if (!this._stop) this._launchRocket(1); }, 350);
+  }
+
+  _launchRocket(side) {
+    const THREE = window.THREE;
+    const start = new THREE.Vector3(side * 8, 0.5, -2 - Math.random() * 2);
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([start.x, start.y, start.z]), 3));
+    const mat = new THREE.PointsMaterial({ size: 0.22, color: 0xfff0c0, transparent: true, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false, map: this._glowTex() });
+    const pts = new THREE.Points(geo, mat);
+    this.scene.add(pts);
+    const vel = new THREE.Vector3(-side * (2.2 + Math.random()), 5.5 + Math.random() * 1.5, 0.4 * (Math.random() - 0.5));
+    const cur = start.clone();
+    let trailT = 0;
+    const dyn = {
+      update: (dt) => {
+        vel.y -= 3.5 * dt;
+        cur.addScaledVector(vel, dt);
+        geo.attributes.position.array[0] = cur.x; geo.attributes.position.array[1] = cur.y; geo.attributes.position.array[2] = cur.z;
+        geo.attributes.position.needsUpdate = true;
+        trailT += dt;
+        if (trailT > 0.04) { trailT = 0; this._addBurst(3, cur.clone(), { size: 0.08, color: 0xffcf8a, life: 0.4, gravity: 0.5, vel: () => ({ x: (Math.random() - 0.5) * 0.3, y: (Math.random() - 0.5) * 0.3, z: (Math.random() - 0.5) * 0.3 }) }); }
+        if (vel.y < 0.2) { this._firework(cur.clone()); return false; }
+        return true;
+      },
+      dispose: () => { this.scene.remove(pts); geo.dispose(); mat.dispose(); }
+    };
+    this.dynamics.push(dyn);
+  }
+
+  _plateShake(scale) {
+    const s = scale || 1;
+    const g = window.gsap;
+    g.killTweensOf(this.plateGroup.rotation);
+    g.fromTo(this.plateGroup.rotation, { z: 0.02 * s }, { z: 0, duration: 0.5, ease: 'elastic.out(1.4,0.35)' });
+    g.fromTo(this.plateGroup.position, { y: -0.05 * s }, { y: 0, duration: 0.5, ease: 'elastic.out(1.4,0.35)' });
+  }
+
+  // ---------- render loop ----------
+  _loop() {
+    if (this._stop) return;
+    requestAnimationFrame(() => this._loop());
+    const dt = Math.min(this.clock.getDelta(), 0.05);
+    const t = this.clock.elapsedTime;
+
+    // camera
+    this.cam.angle += this.cam.orbit * dt;
+    const breathe = Math.sin(t * 0.4) * 0.12;
+    const a = this.cam.angle;
+    const rad = this.cam.radius * (this.fit || 1);
+    this.camera.position.set(
+      Math.sin(a) * rad,
+      (this.cam.height + breathe) * (0.55 + 0.45 * (this.fit || 1)),
+      Math.cos(a) * rad
+    );
+    this.camera.lookAt(this.target);
+
+    // floaters drift
+    if (this.floaters) { this.floaters.rotation.y = t * 0.02; this.floaters.position.y = Math.sin(t * 0.3) * 0.2; }
+
+    // flames flicker
+    for (const f of this.flames) {
+      if (!f.visible) continue;
+      const ph = f.userData.phase;
+      const flick = 0.85 + Math.sin(t * 14 + ph) * 0.12 + Math.sin(t * 27 + ph) * 0.06;
+      f.userData.inner.scale.setScalar(flick);
+      f.userData.outer.scale.set(flick * 0.95, flick * 1.05, flick * 0.95);
+      f.userData.outer.position.x = Math.sin(t * 6 + ph) * 0.012;
+      f.userData.inner.position.x = Math.sin(t * 6 + ph) * 0.008;
+      f.userData.glow.material.opacity = 0.7 + Math.sin(t * 12 + ph) * 0.2;
+      f.rotation.z = Math.sin(t * 3 + ph) * 0.05;
+    }
+
+    // confetti
+    if (this.confActive && this.confetti) {
+      const arr = this.confetti.geometry.attributes.position.array;
+      for (let i = 0; i < this.confVel.length; i++) {
+        const v = this.confVel[i];
+        arr[i * 3 + 1] -= v.vy * dt;
+        arr[i * 3] += Math.sin(t * v.sway + v.ph) * 0.6 * dt;
+        if (arr[i * 3 + 1] < -2) arr[i * 3 + 1] = 9 + Math.random() * 4;
+      }
+      this.confetti.geometry.attributes.position.needsUpdate = true;
+    }
+
+    // dynamics
+    for (let i = this.dynamics.length - 1; i >= 0; i--) {
+      if (!this.dynamics[i].update(dt)) { this.dynamics[i].dispose(); this.dynamics.splice(i, 1); }
+    }
+
+    this.renderer.render(this.scene, this.camera);
+  }
+
+  // ---------- reduced motion ----------
+  _staticFinal() {
+    this.layers.forEach(L => { L.visible = true; L.position.y = L.userData.targetY; L.userData.body.material.emissiveIntensity = 0.3; });
+    this.candles.forEach(c => { c.visible = true; c.position.y = c.userData.targetY; c.userData.flame.visible = true; });
+    this.keyLight.intensity = 1.4; this.rimA.intensity = 1.0; this.rimB.intensity = 0.9;
+    this.warm.intensity = 1.2; this.ambient.intensity = 0.85;
+    this.floaters.material.opacity = 0.7;
+    this.cam.radius = 7.2; this.cam.height = 2.8;
+    this.setState({ reveal: true, revealSub: true, showReplay: true });
+  }
+
+  // ---------- replay ----------
+  _replay = () => {
+    if (this.tl) this.tl.kill();
+    if (this._fwTimer) clearInterval(this._fwTimer);
+    if (this._rocketTimer) clearInterval(this._rocketTimer);
+    window.gsap.killTweensOf('*');
+    this.finale = false; this.cam.orbit = 0; this.confActive = false; this.confetti.visible = false;
+    this.confetti.material.opacity = 0;
+    // clear dynamics
+    for (const d of this.dynamics) d.dispose(); this.dynamics = [];
+    // reset lights
+    this.keyLight.intensity = 0; this.rimA.intensity = 0; this.rimB.intensity = 0;
+    this.warm.intensity = 0; this.ambient.intensity = 0.5; this.floaters.material.opacity = 0.5;
+    // reset layers & candles
+    this.layers.forEach((L, i) => { L.visible = false; L.position.set(0, 13 + i * 0.5, 0); L.rotation.set(0, 0, 0); L.userData.body.material.emissiveIntensity = 0; });
+    this.candles.forEach(c => { c.visible = false; c.userData.flame.visible = false; });
+    this.cam.angle = 0; this.cam.radius = 9.5; this.cam.height = 5.2;
+    this.plateGroup.rotation.set(0, 0, 0); this.plateGroup.position.y = 0;
+    this.setState({ reveal: false, revealSub: false, showReplay: false });
+    if (this.reduced) this._staticFinal(); else this._buildTimeline();
+  }
+
+  // ---------- audio (WebAudio) ----------
+  _ensureAudio() {
+    if (this.audio) return;
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    const ctx = new AC();
+    const master = ctx.createGain();
+    master.gain.value = 0.0; master.connect(ctx.destination);
+    this.audio = { ctx, master };
+  }
+  _startMusic() {
+    this._ensureAudio(); if (!this.audio) return;
+    const { ctx, master } = this.audio;
+    if (ctx.state === 'suspended') ctx.resume();
+    window.gsap.to(master.gain, { value: 0.5, duration: 1.5 });
+    // gentle pad + arpeggio
+    const scale = [261.63, 329.63, 392.0, 493.88, 587.33, 392.0, 329.63, 440.0];
+    let step = 0;
+    this.audio.pad = [];
+    [130.81, 196.0, 261.63].forEach(f => {
+      const o = ctx.createOscillator(); const g = ctx.createGain();
+      o.type = 'sine'; o.frequency.value = f; g.gain.value = 0.06;
+      o.connect(g); g.connect(master); o.start();
+      this.audio.pad.push(o, g);
+    });
+    this.audio.arp = setInterval(() => {
+      if (!this.audio) return;
+      const f = scale[step % scale.length]; step++;
+      const o = ctx.createOscillator(); const g = ctx.createGain();
+      o.type = 'triangle'; o.frequency.value = f;
+      const now = ctx.currentTime;
+      g.gain.setValueAtTime(0, now);
+      g.gain.linearRampToValueAtTime(0.12, now + 0.03);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+      o.connect(g); g.connect(master); o.start(now); o.stop(now + 1);
+    }, 430);
+  }
+  _stopMusic() {
+    if (!this.audio) return;
+    const { ctx, master } = this.audio;
+    if (this.audio.arp) clearInterval(this.audio.arp);
+    if (this.audio.pad) this.audio.pad.forEach(n => { try { n.stop && n.stop(); } catch (e) {} });
+    this.audio.pad = null;
+    window.gsap.to(master.gain, { value: 0, duration: 0.6 });
+  }
+  _musicSwell() {
+    if (!this.audio) return;
+    window.gsap.to(this.audio.master.gain, { value: 0.62, duration: 1.5, yoyo: true, repeat: 1 });
+  }
+  _sfx(kind) {
+    if (!this.state.soundOn) return;
+    this._ensureAudio(); if (!this.audio) return;
+    const { ctx, master } = this.audio;
+    if (ctx.state === 'suspended') ctx.resume();
+    const now = ctx.currentTime;
+    if (kind === 'impact' || kind === 'tick') {
+      const o = ctx.createOscillator(); const g = ctx.createGain();
+      o.type = 'sine'; o.frequency.setValueAtTime(kind === 'impact' ? 140 : 320, now);
+      o.frequency.exponentialRampToValueAtTime(kind === 'impact' ? 60 : 180, now + 0.12);
+      g.gain.setValueAtTime(kind === 'impact' ? 0.35 : 0.12, now);
+      g.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
+      o.connect(g); g.connect(master); o.start(now); o.stop(now + 0.22);
+    } else if (kind === 'spark') {
+      const o = ctx.createOscillator(); const g = ctx.createGain();
+      o.type = 'square'; o.frequency.setValueAtTime(1200, now);
+      o.frequency.exponentialRampToValueAtTime(2600, now + 0.05);
+      g.gain.setValueAtTime(0.05, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+      o.connect(g); g.connect(master); o.start(now); o.stop(now + 0.09);
+    } else if (kind === 'pop') {
+      const buf = ctx.createBuffer(1, ctx.sampleRate * 0.15, ctx.sampleRate);
+      const d = buf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2);
+      const src = ctx.createBufferSource(); src.buffer = buf;
+      const g = ctx.createGain(); g.gain.value = 0.18;
+      const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 900;
+      src.connect(f); f.connect(g); g.connect(master); src.start(now);
+    }
+  }
+  _toggleSound = () => {
+    const on = !this.state.soundOn;
+    this.setState({ soundOn: on, showHint: false });
+    if (on) { this._startMusic(); } else { this._stopMusic(); }
+  }
+
+  // ---------- render ----------
+  renderVals() {
+    const R = window.React;
+    const title = this.props.title ?? 'Happy Birthday Hedil';
+    const subtitle = this.props.subtitle ?? 'Wishing you a beautiful year filled with happiness, success and unforgettable moments.';
+    const cA = this.props.titleColorA ?? '#ffd98a';
+    const cB = this.props.titleColorB ?? '#f7a8d0';
+    const reveal = this.state.reveal;
+
+    const titleEls = title.split('').map((ch, i) => R.createElement('span', {
+      key: i,
+      style: {
+        display: 'inline-block', whiteSpace: 'pre',
+        backgroundImage: `linear-gradient(160deg, ${cA} 15%, ${cB} 85%)`,
+        WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent',
+        opacity: reveal ? 1 : 0,
+        transform: reveal ? 'translateY(0) scale(1)' : 'translateY(28px) scale(0.9)',
+        filter: reveal ? 'drop-shadow(0 0 22px rgba(255,190,120,0.45))' : 'blur(10px)',
+        transition: 'opacity .8s ease, transform .8s cubic-bezier(.2,.85,.25,1), filter .8s ease',
+        transitionDelay: (i * 0.055) + 's'
+      }
+    }, ch));
+
+    const subEl = R.createElement('span', {
+      style: {
+        display: 'inline-block',
+        color: '#fff6ec',
+        fontWeight: 400,
+        textShadow: '0 1px 3px rgba(0,0,0,0.95), 0 2px 14px rgba(0,0,0,0.9)',
+        padding: '10px 22px',
+        borderRadius: '40px',
+        background: 'rgba(18,8,26,0.55)',
+        backdropFilter: 'blur(6px)',
+        border: '1px solid rgba(255,220,180,0.18)',
+        opacity: this.state.revealSub ? 1 : 0,
+        transform: this.state.revealSub ? 'translateY(0)' : 'translateY(14px)',
+        transition: 'opacity 1.1s ease, transform 1.1s ease', transitionDelay: '0.1s'
+      }
+    }, subtitle);
+
+    const btnBase = {
+      cursor: 'pointer', border: '1px solid rgba(255,220,180,0.28)',
+      background: 'rgba(30,18,40,0.45)', backdropFilter: 'blur(8px)',
+      color: '#f2e4ec', fontFamily: "'Jost', sans-serif", fontSize: '13px',
+      letterSpacing: '0.06em', padding: '9px 16px', borderRadius: '40px',
+      transition: 'all .25s ease', display: 'flex', alignItems: 'center', gap: '6px'
+    };
+    const replayBtnStyle = Object.assign({}, btnBase, {
+      opacity: this.state.showReplay ? 1 : 0,
+      pointerEvents: this.state.showReplay ? 'auto' : 'none',
+      transform: this.state.showReplay ? 'translateY(0)' : 'translateY(10px)'
+    });
+
+    const hintStyle = {
+      position: 'absolute', left: '50%', bottom: '74px', transform: 'translateX(-50%)',
+      color: '#d9c3e0', fontSize: '12px', letterSpacing: '0.08em', pointerEvents: 'none',
+      fontFamily: "'Jost', sans-serif",
+      opacity: (this.state.showHint && !this.state.soundOn) ? 1 : 0,
+      transition: 'opacity .6s ease', animation: 'bs-hint 2.6s ease-in-out infinite'
+    };
+
+    return {
+      setMount: (el) => { this.mount = el; },
+      titleEls, subEl,
+      replay: this._replay,
+      toggleSound: this._toggleSound,
+      soundLabel: this.state.soundOn ? '♪ Son activé' : '♪ Son',
+      soundBtnStyle: btnBase,
+      replayBtnStyle,
+      hintStyle
+    };
+  }
+}
+</script>
+</body>
+</html>
