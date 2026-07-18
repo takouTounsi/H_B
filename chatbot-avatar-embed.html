@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; }
+  canvas { display: block; }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.184.0/build/three.module.js"
+  },
+  "integrity": {
+    "https://unpkg.com/three@0.184.0/build/three.module.js": "sha384-8FCZ1eVO6it4+pbec2aDtnTrwjWXZLJRC+MAGCIPDgsYnUrl/E0A2YlF8ioMKI/J",
+    "https://unpkg.com/three@0.184.0/build/three.core.js": "sha384-dw2ooPewaEIrAgl6oFDBmmBWCE9oW9LxRGcfwZ0hLvEprzo202wXl7vCYHRlSnOT"
+  }
+}
+</script>
+</head>
+<body>
+<script type="module">
+import * as THREE from "three";
+
+const scene = new THREE.Scene();
+const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 10);
+camera.position.set(0, 1.05, 2.6);
+camera.lookAt(0, 0.95, 0);
+
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+document.body.appendChild(renderer.domElement);
+
+function resize() {
+  const w = window.innerWidth, h = window.innerHeight;
+  renderer.setSize(w, h);
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+}
+window.addEventListener('resize', resize);
+
+const hemi = new THREE.HemisphereLight(0xdfe6f2, 0x10131c, 1.1);
+scene.add(hemi);
+const key = new THREE.DirectionalLight(0xffffff, 1.4);
+key.position.set(1.4, 2.4, 1.8);
+scene.add(key);
+const fill = new THREE.DirectionalLight(0xbfd3ea, 0.5);
+fill.position.set(-1.6, 1.2, -1.2);
+scene.add(fill);
+
+// Brand palette — deep navy / teal / amber accent, matching PharmaRegOps
+const mats = {
+  skin: new THREE.MeshStandardMaterial({ color: 0xe0aa85, roughness: 0.85 }),
+  hair: new THREE.MeshStandardMaterial({ color: 0x1c2436, roughness: 0.7 }),
+  shirt: new THREE.MeshStandardMaterial({ color: 0x0e6b62, roughness: 0.75 }),
+  belt: new THREE.MeshStandardMaterial({ color: 0x101828, roughness: 0.75 }),
+  buckle: new THREE.MeshStandardMaterial({ color: 0xc99a3e, roughness: 0.35, metalness: 0.4 }),
+  pants: new THREE.MeshStandardMaterial({ color: 0x1b2233, roughness: 0.8 }),
+  shoe: new THREE.MeshStandardMaterial({ color: 0x14181f, roughness: 0.6 }),
+  eyeWhite: new THREE.MeshStandardMaterial({ color: 0xf5efe6, roughness: 0.6 }),
+  eyeBlack: new THREE.MeshStandardMaterial({ color: 0x14181f, roughness: 0.5 }),
+  mouth: new THREE.MeshStandardMaterial({ color: 0x7a4a3a, roughness: 0.7 }),
+  pin: new THREE.MeshStandardMaterial({ color: 0xc99a3e, roughness: 0.3, metalness: 0.45 })
+};
+
+const model = new THREE.Group();
+function box(w, h, d, mat, x, y, z) {
+  const mesh = new THREE.Mesh(new THREE.BoxGeometry(w, h, d), mat);
+  mesh.position.set(x, y, z);
+  model.add(mesh);
+  return mesh;
+}
+
+const legW = 0.2, legD = 0.24, legH = 0.5, legGap = 0.05;
+box(legW, legH, legD, mats.pants, -(legW / 2 + legGap / 2), legH / 2, 0);
+box(legW, legH, legD, mats.pants, (legW / 2 + legGap / 2), legH / 2, 0);
+box(legW + 0.02, 0.12, legD + 0.04, mats.shoe, -(legW / 2 + legGap / 2), 0.06, 0.01);
+box(legW + 0.02, 0.12, legD + 0.04, mats.shoe, (legW / 2 + legGap / 2), 0.06, 0.01);
+
+const torsoY0 = legH, torsoH = 0.56, torsoW = 0.62, torsoD = 0.34;
+box(torsoW, torsoH, torsoD, mats.shirt, 0, torsoY0 + torsoH / 2, 0);
+box(torsoW + 0.01, 0.09, torsoD + 0.01, mats.belt, 0, torsoY0 + torsoH * 0.42, 0);
+box(0.13, 0.11, torsoD + 0.02, mats.buckle, 0, torsoY0 + torsoH * 0.42, 0);
+// lapel pin — small brand accent
+box(0.06, 0.06, 0.02, mats.pin, torsoW * 0.28, torsoY0 + torsoH * 0.78, torsoD / 2 + 0.005);
+
+const armY0 = torsoY0 + torsoH - 0.08, armH = 0.42, armW = 0.17, armD = 0.17;
+box(armW, 0.14, armD, mats.shirt, -(torsoW / 2 + armW / 2 - 0.02), armY0 - 0.02, 0);
+box(armW, 0.14, armD, mats.shirt, (torsoW / 2 + armW / 2 - 0.02), armY0 - 0.02, 0);
+box(armW * 0.85, armH, armD * 0.85, mats.skin, -(torsoW / 2 + armW / 2 - 0.02), armY0 - armH / 2 - 0.1, 0);
+box(armW * 0.85, armH, armD * 0.85, mats.skin, (torsoW / 2 + armW / 2 - 0.02), armY0 - armH / 2 - 0.1, 0);
+
+const neckY0 = torsoY0 + torsoH;
+box(0.18, 0.08, 0.18, mats.skin, 0, neckY0 + 0.04, 0);
+
+const headY0 = neckY0 + 0.08, headW = 0.48, headH = 0.48, headD = 0.44;
+box(headW, headH, headD, mats.skin, 0, headY0 + headH / 2, 0);
+
+const earY = headY0 + headH * 0.42;
+box(0.06, 0.14, 0.1, mats.skin, -(headW / 2 + 0.02), earY, 0.02);
+box(0.06, 0.14, 0.1, mats.skin, (headW / 2 + 0.02), earY, 0.02);
+
+const faceZ = headD / 2;
+box(headW + 0.03, 0.15, headD + 0.03, mats.hair, 0, headY0 + headH - 0.06, 0);
+box(headW + 0.02, headH * 0.5, headD * 0.55, mats.hair, 0, headY0 + headH * 0.62, -headD * 0.24);
+box(0.09, headH * 0.62, headD * 0.7, mats.hair, -(headW / 2 + 0.005), headY0 + headH * 0.5, -0.02);
+box(0.09, headH * 0.62, headD * 0.7, mats.hair, (headW / 2 + 0.005), headY0 + headH * 0.5, -0.02);
+box(headW * 0.9, 0.08, 0.06, mats.hair, 0, headY0 + headH * 0.78, faceZ - 0.02);
+
+const eyeY = headY0 + headH * 0.55, eyeZ = faceZ + 0.001;
+box(0.11, 0.13, 0.03, mats.eyeWhite, -0.12, eyeY, eyeZ);
+box(0.11, 0.13, 0.03, mats.eyeWhite, 0.12, eyeY, eyeZ);
+box(0.05, 0.07, 0.032, mats.eyeBlack, -0.12, eyeY - 0.01, eyeZ + 0.002);
+box(0.05, 0.07, 0.032, mats.eyeBlack, 0.12, eyeY - 0.01, eyeZ + 0.002);
+box(0.16, 0.05, 0.03, mats.mouth, 0, headY0 + headH * 0.28, eyeZ);
+
+const box3 = new THREE.Box3().setFromObject(model);
+const center = box3.getCenter(new THREE.Vector3());
+model.position.x -= center.x;
+model.position.z -= center.z;
+scene.add(model);
+
+resize();
+let t = 0;
+function animate() {
+  requestAnimationFrame(animate);
+  t += 0.006;
+  model.rotation.y = Math.sin(t) * 0.5;
+  renderer.render(scene, camera);
+}
+animate();
+</script>
+</body>
+</html>

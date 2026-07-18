@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>PharmaRegOps Chatbot Avatar — 3D</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0e1420; }
+  three-d-stage:not(:defined) { visibility: hidden; }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.184.0/build/three.module.js",
+    "three/addons/controls/OrbitControls.js": "https://unpkg.com/three@0.184.0/examples/jsm/controls/OrbitControls.js",
+    "three/addons/exporters/OBJExporter.js": "https://unpkg.com/three@0.184.0/examples/jsm/exporters/OBJExporter.js",
+    "three/addons/exporters/GLTFExporter.js": "https://unpkg.com/three@0.184.0/examples/jsm/exporters/GLTFExporter.js"
+  },
+  "integrity": {
+    "https://unpkg.com/three@0.184.0/build/three.module.js": "sha384-8FCZ1eVO6it4+pbec2aDtnTrwjWXZLJRC+MAGCIPDgsYnUrl/E0A2YlF8ioMKI/J",
+    "https://unpkg.com/three@0.184.0/build/three.core.js": "sha384-dw2ooPewaEIrAgl6oFDBmmBWCE9oW9LxRGcfwZ0hLvEprzo202wXl7vCYHRlSnOT",
+    "https://unpkg.com/three@0.184.0/examples/jsm/controls/OrbitControls.js": "sha384-4rziNxOBZKQ69i+w+f89KJ55TCYquwchVbByQwmaOeIOXdOU2PLDn3kOfXHwIJC9",
+    "https://unpkg.com/three@0.184.0/examples/jsm/exporters/OBJExporter.js": "sha384-nbwtoZENJD3Vq+ACK0CuGQdPMuDWHkamC2KJD70EV5nfg6jQjfppKOea07YJN+N3",
+    "https://unpkg.com/three@0.184.0/examples/jsm/exporters/GLTFExporter.js": "sha384-VofkvpG6HERhFCYbsUOHeNXBCqID2nfqkQqnVzE1jc/oPcz+qJ13ADdXH08hE+cQ"
+  }
+}
+</script>
+</head>
+<body>
+<three-d-stage name="pharmaregops-chatbot-avatar" background="#101828"></three-d-stage>
+<script src="three-d-stage.js"></script>
+<script type="module">
+import * as THREE from "three";
+
+const stage = document.querySelector('three-d-stage');
+const { THREE: T } = await stage.ready;
+
+const mats = {
+  skin: new THREE.MeshStandardMaterial({ color: 0xe3a97e, name: 'skin', roughness: 0.85, metalness: 0.02 }),
+  hair: new THREE.MeshStandardMaterial({ color: 0x4a2f22, name: 'hair', roughness: 0.75, metalness: 0.02 }),
+  shirt: new THREE.MeshStandardMaterial({ color: 0xd77a2c, name: 'shirt_orange', roughness: 0.8, metalness: 0.02 }),
+  belt: new THREE.MeshStandardMaterial({ color: 0x5a3a26, name: 'belt_brown', roughness: 0.8, metalness: 0.05 }),
+  buckle: new THREE.MeshStandardMaterial({ color: 0xd6a94a, name: 'buckle_gold', roughness: 0.4, metalness: 0.35 }),
+  pants: new THREE.MeshStandardMaterial({ color: 0x3a2a1e, name: 'pants_dark_brown', roughness: 0.85, metalness: 0.02 }),
+  shoe: new THREE.MeshStandardMaterial({ color: 0x2a1d15, name: 'shoe_dark', roughness: 0.7, metalness: 0.05 }),
+  eyeWhite: new THREE.MeshStandardMaterial({ color: 0xf5efe6, name: 'eye_white', roughness: 0.6, metalness: 0.0 }),
+  eyeBlack: new THREE.MeshStandardMaterial({ color: 0x1a1410, name: 'eye_black', roughness: 0.5, metalness: 0.0 }),
+  mouth: new THREE.MeshStandardMaterial({ color: 0x8a352c, name: 'mouth_red', roughness: 0.7, metalness: 0.0 }),
+  earring: new THREE.MeshStandardMaterial({ color: 0xd6a94a, name: 'earring_gold', roughness: 0.35, metalness: 0.4 })
+};
+
+const model = new THREE.Group();
+model.name = 'PharmaRegOps_Chatbot_Avatar';
+
+function box(w, h, d, mat, name, x, y, z) {
+  const geo = new THREE.BoxGeometry(w, h, d);
+  const mesh = new THREE.Mesh(geo, mat);
+  mesh.name = name;
+  mesh.position.set(x, y, z);
+  mesh.castShadow = true;
+  mesh.receiveShadow = true;
+  model.add(mesh);
+  return mesh;
+}
+
+// --- Legs / shoes ---
+const legW = 0.2, legD = 0.24, legH = 0.5, legGap = 0.05;
+box(legW, legH, legD, mats.pants, 'leg_left', -(legW / 2 + legGap / 2), legH / 2, 0);
+box(legW, legH, legD, mats.pants, 'leg_right', (legW / 2 + legGap / 2), legH / 2, 0);
+box(legW + 0.02, 0.12, legD + 0.04, mats.shoe, 'shoe_left', -(legW / 2 + legGap / 2), 0.06, 0.01);
+box(legW + 0.02, 0.12, legD + 0.04, mats.shoe, 'shoe_right', (legW / 2 + legGap / 2), 0.06, 0.01);
+
+// --- Torso ---
+const torsoY0 = legH;
+const torsoH = 0.56, torsoW = 0.62, torsoD = 0.34;
+box(torsoW, torsoH, torsoD, mats.shirt, 'torso_shirt', 0, torsoY0 + torsoH / 2, 0);
+// belt band
+box(torsoW + 0.01, 0.09, torsoD + 0.01, mats.belt, 'belt_band', 0, torsoY0 + torsoH * 0.42, 0);
+box(0.13, 0.11, torsoD + 0.02, mats.buckle, 'belt_buckle', 0, torsoY0 + torsoH * 0.42, 0);
+
+// --- Arms (skin forearm + shirt sleeve cap) ---
+const armY0 = torsoY0 + torsoH - 0.08;
+const armH = 0.42, armW = 0.17, armD = 0.17;
+box(armW, 0.14, armD, mats.shirt, 'sleeve_left', -(torsoW / 2 + armW / 2 - 0.02), armY0 - 0.02, 0);
+box(armW, 0.14, armD, mats.shirt, 'sleeve_right', (torsoW / 2 + armW / 2 - 0.02), armY0 - 0.02, 0);
+box(armW * 0.85, armH, armD * 0.85, mats.skin, 'arm_left', -(torsoW / 2 + armW / 2 - 0.02), armY0 - armH / 2 - 0.1, 0);
+box(armW * 0.85, armH, armD * 0.85, mats.skin, 'arm_right', (torsoW / 2 + armW / 2 - 0.02), armY0 - armH / 2 - 0.1, 0);
+
+// --- Neck ---
+const neckY0 = torsoY0 + torsoH;
+box(0.18, 0.08, 0.18, mats.skin, 'neck', 0, neckY0 + 0.04, 0);
+
+// --- Head ---
+const headY0 = neckY0 + 0.08;
+const headW = 0.48, headH = 0.48, headD = 0.44;
+box(headW, headH, headD, mats.skin, 'head', 0, headY0 + headH / 2, 0);
+
+// --- Ears + earrings ---
+const earY = headY0 + headH * 0.42;
+box(0.06, 0.14, 0.1, mats.skin, 'ear_left', -(headW / 2 + 0.02), earY, 0.02);
+box(0.06, 0.14, 0.1, mats.skin, 'ear_right', (headW / 2 + 0.02), earY, 0.02);
+const earringGeo = new THREE.SphereGeometry(0.03, 16, 16);
+const earringL = new THREE.Mesh(earringGeo, mats.earring);
+earringL.name = 'earring_left';
+earringL.position.set(-(headW / 2 + 0.02), earY - 0.11, 0.02);
+model.add(earringL);
+const earringR = new THREE.Mesh(earringGeo, mats.earring);
+earringR.name = 'earring_right';
+earringR.position.set((headW / 2 + 0.02), earY - 0.11, 0.02);
+model.add(earringR);
+
+// --- Hair: crown, back mass, side bob panels, fringe ---
+const faceZ = headD / 2;
+box(headW + 0.03, 0.15, headD + 0.03, mats.hair, 'hair_crown', 0, headY0 + headH - 0.06, 0);
+box(headW + 0.02, headH * 0.5, headD * 0.55, mats.hair, 'hair_back', 0, headY0 + headH * 0.62, -headD * 0.24);
+box(0.09, headH * 0.62, headD * 0.7, mats.hair, 'hair_side_left', -(headW / 2 + 0.005), headY0 + headH * 0.5, -0.02);
+box(0.09, headH * 0.62, headD * 0.7, mats.hair, 'hair_side_right', (headW / 2 + 0.005), headY0 + headH * 0.5, -0.02);
+box(headW * 0.9, 0.08, 0.06, mats.hair, 'hair_fringe', 0, headY0 + headH * 0.78, faceZ - 0.02);
+
+// --- Face: eyes + mouth ---
+const eyeY = headY0 + headH * 0.55;
+const eyeZ = faceZ + 0.001;
+box(0.11, 0.13, 0.03, mats.eyeWhite, 'eye_white_left', -0.12, eyeY, eyeZ);
+box(0.11, 0.13, 0.03, mats.eyeWhite, 'eye_white_right', 0.12, eyeY, eyeZ);
+box(0.05, 0.07, 0.032, mats.eyeBlack, 'eye_pupil_left', -0.12, eyeY - 0.01, eyeZ + 0.002);
+box(0.05, 0.07, 0.032, mats.eyeBlack, 'eye_pupil_right', 0.12, eyeY - 0.01, eyeZ + 0.002);
+box(0.16, 0.05, 0.03, mats.mouth, 'mouth', 0, headY0 + headH * 0.28, eyeZ);
+
+// center on origin at true center, base already at y=0
+const box3 = new THREE.Box3().setFromObject(model);
+const center = box3.getCenter(new THREE.Vector3());
+model.position.x -= center.x;
+model.position.z -= center.z;
+
+stage.setObject(model);
+</script>
+</body>
+</html>
