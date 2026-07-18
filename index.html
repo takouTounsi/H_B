@@ -8,825 +8,1182 @@
 <body>
 <x-dc>
 <helmet>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
-<style>
-  html, body { margin: 0; padding: 0; height: 100%; background: #07040c; overflow: hidden; }
-  * { box-sizing: border-box; }
-  a { color: #f7a8d0; text-decoration: none; }
-  a:hover { color: #ffd98a; }
-  @keyframes bs-fadein { from { opacity: 0; } to { opacity: 1; } }
-  @keyframes bs-hint { 0%,100% { opacity: .35; } 50% { opacity: .75; } }
-</style>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; }
+    @keyframes prego-pulse { 0% { opacity: .35; } 50% { opacity: 1; } 100% { opacity: .35; } }
+    @keyframes prego-fade-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; } }
+    a { color: #2c5590; }
+    a:hover { color: #1a3a68; }
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-thumb { background: #d3cfc6; border-radius: 4px; }
+  </style>
 </helmet>
-<div style="position: fixed; inset: 0; width: 100%; height: 100%; overflow: hidden; background: radial-gradient(120% 90% at 50% 20%, #241033 0%, #150a20 35%, #0a0512 70%, #050208 100%); font-family: 'Jost', sans-serif;">
 
-  <div ref="{{ setMount }}" style="position: absolute; inset: 0; width: 100%; height: 100%;"></div>
+<div style="--navy:#101828;--navy-2:#1b2740;--teal:#0e6b62;--teal-light:#e4f0ee;--amber:#96650f;--amber-light:#faf1de;--red:#a3312a;--red-light:#fbe9e8;--green:#2f7a4f;--green-light:#e8f3ec;--violet:#5b4a8a;--violet-light:#efebf6;--blue:#2c5590;--blue-light:#e8eef7;--stone:#f5f3ef;--stone-2:#ece9e2;--ink:#1a2130;--ink-2:#5b6274;--line:#ddd8ce;--white:#ffffff;--gray:#8b8f97;--gray-light:#eef0f1;--font-serif:'Source Serif 4',serif;--font-sans:'IBM Plex Sans',sans-serif;--font-mono:'IBM Plex Mono',monospace;
+  font-family:var(--font-sans); color:var(--ink); background:var(--stone); width:100%; height:100vh; display:flex; overflow:hidden; font-size:14px;">
 
-  <div style="position: absolute; inset: 0; pointer-events: none; background: radial-gradient(60% 45% at 50% 62%, rgba(255,200,140,0.10), rgba(0,0,0,0) 70%); mix-blend-mode: screen;"></div>
-
-  <div style="position: absolute; left: 0; right: 0; top: 14%; display: flex; flex-direction: column; align-items: center; gap: 18px; padding: 0 24px; pointer-events: none; text-align: center;">
-    <div style="font-family: 'Cormorant Garamond', serif; font-weight: 600; letter-spacing: 0.01em; line-height: 1.05; font-size: clamp(38px, 8vw, 104px);">{{ titleEls }}</div>
-    <div style="max-width: 620px; font-weight: 300; letter-spacing: 0.04em; line-height: 1.6; font-size: clamp(13px, 2vw, 19px);">{{ subEl }}</div>
+  <!-- LEFT NAV -->
+  <div style="width:{{ navWidth }}; min-width:{{ navWidth }}; background:var(--navy); color:#c7cedb; display:flex; flex-direction:column; transition:width .18s ease; overflow:hidden;">
+    <div style="display:flex; align-items:center; gap:10px; padding:18px 16px; border-bottom:1px solid #263252;">
+      <div style="width:28px; height:28px; min-width:28px; border:1.5px solid #7c8aa8; display:flex; align-items:center; justify-content:center; font-family:var(--font-serif); font-weight:700; font-size:14px; color:#e7ebf3;">R</div>
+      <sc-if value="{{ navExpanded }}" hint-placeholder-val="{{ true }}">
+        <div>
+          <div style="font-family:var(--font-serif); font-weight:600; font-size:15px; color:#f2f4f8; letter-spacing:.2px;">PharmaRegOps</div>
+          <div style="font-size:10px; color:#8c96b0; letter-spacing:.6px; text-transform:uppercase;">Mission Control</div>
+        </div>
+      </sc-if>
+    </div>
+    <div style="flex:1; overflow-y:auto; padding:10px 8px;">
+      <sc-for list="{{ navItems }}" as="item" hint-placeholder-count="11">
+        <div onClick="{{ item.onClick }}" style="display:flex; align-items:center; gap:11px; padding:9px 10px; margin-bottom:2px; border-radius:3px; cursor:pointer; font-size:12.5px; font-weight:500; color:{{ item.textColor }}; background:{{ item.bg }}; border-left:2px solid {{ item.accent }};">
+          <div style="width:6px; height:6px; min-width:6px; border-radius:50%; background:{{ item.dotColor }};"></div>
+          <sc-if value="{{ navExpanded }}" hint-placeholder-val="{{ true }}"><span>{{ item.label }}</span></sc-if>
+        </div>
+      </sc-for>
+    </div>
+    <div onClick="{{ toggleNav }}" style="padding:12px 16px; border-top:1px solid #263252; font-size:11px; color:#8c96b0; cursor:pointer; letter-spacing:.3px;">
+      <sc-if value="{{ navExpanded }}" hint-placeholder-val="{{ true }}"><span>&larr; Collapse</span></sc-if>
+      <sc-if value="{{ navCollapsedFlag }}"><span>&rarr;</span></sc-if>
+    </div>
   </div>
 
-  <div style="position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%); display: flex; align-items: center; gap: 12px; z-index: 5;">
-    <button onClick="{{ toggleSound }}" style="{{ soundBtnStyle }}" aria-label="Toggle music">{{ soundLabel }}</button>
-    <button onClick="{{ replay }}" style="{{ replayBtnStyle }}" aria-label="Replay animation">↻ Rejouer</button>
+  <!-- MAIN COLUMN -->
+  <div style="flex:1; display:flex; flex-direction:column; min-width:0; height:100%;">
+
+    <!-- TOP COMMAND BAR -->
+    <div style="min-height:56px; background:var(--white); border-bottom:1px solid var(--line); display:flex; flex-wrap:wrap; align-items:center; padding:8px 18px; gap:14px; box-sizing:border-box;">
+      <div style="display:flex; flex-direction:column; line-height:1.2; flex-shrink:0;">
+        <span style="font-size:9.5px; text-transform:uppercase; letter-spacing:.5px; color:var(--ink-2);">Organization</span>
+        <span style="font-size:12.5px; font-weight:600;">Northfield Pharma</span>
+      </div>
+      <div style="width:1px; height:26px; background:var(--line); flex-shrink:0;"></div>
+      <div style="display:flex; flex-direction:column; line-height:1.2; cursor:pointer; flex-shrink:0;" onClick="{{ goToProductRoom }}">
+        <span style="font-size:9.5px; text-transform:uppercase; letter-spacing:.5px; color:var(--ink-2);">Selected Product</span>
+        <span style="font-size:12.5px; font-weight:600; color:var(--blue);">Drug X 500&nbsp;mg tablets</span>
+      </div>
+      <div style="width:1px; height:26px; background:var(--line); flex-shrink:0;"></div>
+      <div style="display:flex; flex-direction:column; line-height:1.2; flex-shrink:0;">
+        <span style="font-size:9.5px; text-transform:uppercase; letter-spacing:.5px; color:var(--ink-2);">Market</span>
+        <span style="font-size:12.5px; font-weight:600;">EU &amp; Tunisia</span>
+      </div>
+      <div style="flex:1 1 160px; min-width:120px; max-width:340px; margin-left:8px;">
+        <div style="display:flex; align-items:center; gap:8px; background:var(--stone); border:1px solid var(--line); border-radius:3px; padding:6px 10px; color:var(--ink-2); font-size:12px; overflow:hidden; white-space:nowrap;">
+          <span>&#8981;</span><span style="overflow:hidden; text-overflow:ellipsis;">Search products, requirements, cases&hellip;</span>
+          <span style="margin-left:auto; font-family:var(--font-mono); font-size:10px; border:1px solid var(--line); border-radius:2px; padding:1px 5px; flex-shrink:0;">&#8984;K</span>
+        </div>
+      </div>
+      <div style="flex:1 1 0;"></div>
+      <div style="display:flex; align-items:center; gap:6px; font-size:11px; color:var(--ink-2); flex-shrink:0;">
+        <div style="width:7px; height:7px; border-radius:50%; background:var(--green); flex-shrink:0;"></div>
+        Data fresh &middot; 4m ago
+      </div>
+      <div style="position:relative; flex-shrink:0;">
+        <select onChange="{{ onRoleChange }}" value="{{ role }}" style="appearance:none; font-family:var(--font-sans); font-size:12px; font-weight:600; border:1px solid var(--line); border-radius:3px; padding:7px 26px 7px 10px; background:var(--stone); color:var(--ink); cursor:pointer;">
+          <sc-for list="{{ roleOptions }}" as="r" hint-placeholder-count="7">
+            <option value="{{ r.id }}">{{ r.label }}</option>
+          </sc-for>
+        </select>
+      </div>
+      <div style="width:30px; height:30px; min-width:30px; border-radius:50%; background:var(--navy); color:#fff; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:600; font-family:var(--font-mono); flex-shrink:0;">MH</div>
+    </div>
+
+    <!-- BODY -->
+    <div style="flex:1; display:flex; min-height:0;">
+      <div style="flex:1; overflow-y:auto; min-width:0;">
+
+        <!-- =============== COMMAND CENTER =============== -->
+        <sc-if value="{{ isCommandCenter }}" hint-placeholder-val="{{ true }}">
+          <div style="padding:22px 26px 60px;">
+            <div style="display:flex; align-items:flex-end; justify-content:space-between; margin-bottom:16px;">
+              <div>
+                <div style="font-size:10.5px; text-transform:uppercase; letter-spacing:.8px; color:var(--ink-2); margin-bottom:4px;">{{ roleLabel }} &middot; Command Center</div>
+                <div style="font-family:var(--font-serif); font-size:26px; font-weight:600;">Regulatory Mission Control</div>
+              </div>
+              <div style="display:flex; align-items:center; gap:10px; background:var(--white); border:1px solid var(--line); border-radius:4px; padding:10px 14px;">
+                <div style="font-size:11px; color:var(--ink-2);">Propagation Demo &middot; Stage {{ demoStageDisplay }}/8</div>
+                <button onClick="{{ toggleDemo }}" style="font-family:var(--font-sans); font-weight:600; font-size:12px; background:var(--navy); color:#fff; border:none; border-radius:3px; padding:7px 14px; cursor:pointer;">{{ demoButtonLabel }}</button>
+                <button onClick="{{ resetDemo }}" style="font-family:var(--font-sans); font-weight:500; font-size:12px; background:transparent; color:var(--ink-2); border:1px solid var(--line); border-radius:3px; padding:7px 12px; cursor:pointer;">Reset</button>
+              </div>
+            </div>
+
+            <!-- KPI strip -->
+            <div style="display:grid; grid-template-columns:repeat(6,1fr); gap:10px; margin-bottom:18px;">
+              <sc-for list="{{ kpis }}" as="k" hint-placeholder-count="6">
+                <div style="background:var(--white); border:1px solid var(--line); border-radius:4px; padding:10px 12px;">
+                  <div style="font-size:9.5px; text-transform:uppercase; letter-spacing:.4px; color:var(--ink-2); margin-bottom:6px;">{{ k.label }}</div>
+                  <div style="font-family:var(--font-mono); font-size:20px; font-weight:600; color:{{ k.color }};">{{ k.value }}</div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="display:grid; grid-template-columns:2.1fr 1fr; gap:16px; align-items:start;">
+              <!-- Lifecycle Dependency Orbit -->
+              <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:18px;">
+                <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+                  <div>
+                    <div style="font-family:var(--font-serif); font-size:17px; font-weight:600;">Lifecycle Dependency Orbit</div>
+                    <div style="font-size:11px; color:var(--ink-2);">Drug X 500&nbsp;mg &middot; every affected object around one validated change</div>
+                  </div>
+                  <div style="display:flex; gap:6px;">
+                    <sc-for list="{{ viewModes }}" as="vm" hint-placeholder-count="3">
+                      <div onClick="{{ vm.onClick }}" style="font-size:11px; font-weight:600; padding:5px 10px; border-radius:3px; cursor:pointer; background:{{ vm.bg }}; color:{{ vm.color }};">{{ vm.label }}</div>
+                    </sc-for>
+                  </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:10px; align-items:start;">
+                  <sc-for list="{{ orbitSectors }}" as="sector" hint-placeholder-count="5">
+                    <div style="display:flex; flex-direction:column; gap:8px;">
+                      <div style="font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.5px; color:{{ sector.color }}; text-align:center; padding-bottom:6px; border-bottom:2px solid {{ sector.color }};">{{ sector.label }}</div>
+                      <sc-for list="{{ sector.nodes }}" as="node" hint-placeholder-count="2">
+                        <div onMouseEnter="{{ node.onEnter }}" onMouseLeave="{{ node.onLeave }}" onClick="{{ node.onClick }}"
+                          style="cursor:pointer; border-radius:4px; padding:8px 9px; font-size:11.5px; background:{{ node.bg }}; border:1px solid {{ node.border }}; opacity:{{ node.opacity }}; transition:opacity .12s;">
+                          <div style="display:flex; align-items:center; gap:5px; margin-bottom:3px;">
+                            <div style="width:6px; height:6px; border-radius:50%; background:{{ node.dot }};"></div>
+                            <div style="font-family:var(--font-mono); font-size:9.5px; color:var(--ink-2);">{{ node.id }}</div>
+                          </div>
+                          <div style="font-weight:600; line-height:1.25;">{{ node.label }}</div>
+                          <div style="font-size:10px; color:{{ node.dot }}; font-weight:600; margin-top:3px;">{{ node.statusLabel }}</div>
+                          <sc-if value="{{ node.relation }}">
+                            <div style="font-size:10px; color:var(--ink-2); margin-top:4px; padding-top:4px; border-top:1px dashed var(--line);">&rarr; <em>{{ node.relationVerb }}</em> &rarr; {{ node.relationTarget }}</div>
+                          </sc-if>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="text-align:center; margin-top:12px; font-size:10.5px; color:var(--ink-2);">Center: <strong>Drug X 500&nbsp;mg tablets</strong> &middot; hover a node to trace downstream propagation</div>
+              </div>
+
+              <!-- Side: critical tasks + reviews + deadlines -->
+              <div style="display:flex; flex-direction:column; gap:12px;">
+                <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:14px;">
+                  <div style="font-size:12px; font-weight:700; margin-bottom:10px;">{{ roleLabel }} &middot; Priority Queue</div>
+                  <sc-for list="{{ roleTasks }}" as="t" hint-placeholder-count="4">
+                    <div style="display:flex; gap:8px; padding:8px 0; border-bottom:1px solid var(--stone-2);">
+                      <div style="width:6px; height:6px; border-radius:50%; margin-top:5px; background:{{ t.color }}; min-width:6px;"></div>
+                      <div>
+                        <div style="font-size:12px; font-weight:600; line-height:1.3;">{{ t.title }}</div>
+                        <div style="font-size:10.5px; color:var(--ink-2);">{{ t.meta }}</div>
+                      </div>
+                    </div>
+                  </sc-for>
+                </div>
+                <div style="background:var(--navy); color:#dfe4ee; border-radius:5px; padding:14px;">
+                  <div style="font-size:12px; font-weight:700; margin-bottom:8px; color:#fff;">Recent Validated Decisions</div>
+                  <sc-for list="{{ recentDecisions }}" as="d" hint-placeholder-count="3">
+                    <div style="font-size:11px; padding:6px 0; border-bottom:1px solid #263252; line-height:1.4;">
+                      <span style="font-family:var(--font-mono); color:#8c96b0;">{{ d.id }}</span> &middot; {{ d.text }}
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </div>
+
+            <!-- Change Propagation Ribbon -->
+            <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:18px; margin-top:16px;">
+              <div style="display:flex; align-items:center; justify-content:space-between; margin-bottom:14px;">
+                <div>
+                  <div style="font-family:var(--font-serif); font-size:17px; font-weight:600;">Change Propagation Ribbon</div>
+                  <div style="font-size:11px; color:var(--ink-2);">One rule, traced end-to-end &middot; correlation <span style="font-family:var(--font-mono);">CORR-88213</span></div>
+                </div>
+                <div style="font-size:11px; color:var(--ink-2);">Drag the play control above, or click a stage to scrub</div>
+              </div>
+              <div style="display:flex; gap:0;">
+                <sc-for list="{{ ribbonStages }}" as="s" hint-placeholder-count="9">
+                  <div onClick="{{ s.onClick }}" style="flex:1; cursor:pointer; padding:10px 10px; border-top:3px solid {{ s.color }}; background:{{ s.bg }}; margin-right:2px;">
+                    <div style="font-size:9px; font-family:var(--font-mono); color:var(--ink-2);">{{ s.time }}</div>
+                    <div style="font-size:11px; font-weight:700; margin:3px 0 2px; line-height:1.25; color:{{ s.textColor }};">{{ s.label }}</div>
+                    <div style="font-size:10px; color:var(--ink-2); line-height:1.3;">{{ s.detail }}</div>
+                    <div style="font-size:9.5px; color:{{ s.color }}; font-weight:700; margin-top:6px; text-transform:uppercase; letter-spacing:.3px;">{{ s.statusLabel }}</div>
+                    <div style="font-size:9.5px; color:var(--ink-2); margin-top:2px;">{{ s.who }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- =============== PRODUCTS =============== -->
+        <sc-if value="{{ isProducts }}">
+          <div style="padding:22px 26px;">
+            <div style="font-family:var(--font-serif); font-size:24px; font-weight:600; margin-bottom:4px;">Products</div>
+            <div style="font-size:12px; color:var(--ink-2); margin-bottom:18px;">Portfolio in this workspace &middot; 1 active, 2 upcoming</div>
+            <div style="display:flex; flex-direction:column; gap:1px; background:var(--line); border:1px solid var(--line); border-radius:4px; overflow:hidden;">
+              <div onClick="{{ goToProductRoom }}" style="background:var(--white); padding:16px 18px; cursor:pointer; display:grid; grid-template-columns:2fr 1fr 1fr 1fr 1fr; align-items:center;">
+                <div>
+                  <div style="font-weight:700; font-size:14px;">Drug X 500&nbsp;mg tablets</div>
+                  <div style="font-size:11px; color:var(--ink-2);">Substance X &middot; Film-coated tablet</div>
+                </div>
+                <div style="font-size:12px;">Tunisia, EU</div>
+                <div><span style="background:var(--green-light); color:var(--green); font-size:10.5px; font-weight:700; padding:3px 8px; border-radius:3px;">Active</span></div>
+                <div style="font-size:12px;">Safety v3.2</div>
+                <div style="font-size:12px; color:var(--amber); font-weight:600;">4 open actions</div>
+              </div>
+              <div style="background:var(--white); padding:16px 18px; opacity:.45;">
+                <div style="font-weight:700; font-size:14px;">Drug Y 250&nbsp;mg capsules</div>
+                <div style="font-size:11px; color:var(--ink-2);">Onboarding &middot; not yet monitored</div>
+              </div>
+              <div style="background:var(--white); padding:16px 18px; opacity:.45;">
+                <div style="font-weight:700; font-size:14px;">Drug Z 10&nbsp;mg/mL solution</div>
+                <div style="font-size:11px; color:var(--ink-2);">Onboarding &middot; not yet monitored</div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- =============== PRODUCT CONTROL ROOM =============== -->
+        <sc-if value="{{ isProductRoom }}">
+          <div style="padding:22px 26px 60px;">
+            <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:18px; margin-bottom:14px;">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div>
+                  <div style="font-family:var(--font-serif); font-size:22px; font-weight:600;">Drug X 500&nbsp;mg tablets</div>
+                  <div style="font-size:12px; color:var(--ink-2); margin-top:2px;">Substance X &middot; Film-coated tablet &middot; 500&nbsp;mg &middot; Northfield Pharma Manufacturing</div>
+                </div>
+                <span style="background:var(--green-light); color:var(--green); font-size:11px; font-weight:700; padding:4px 10px; border-radius:3px;">Authorization Active</span>
+              </div>
+              <div style="display:grid; grid-template-columns:repeat(5,1fr); gap:10px; margin-top:16px;">
+                <div><div style="font-size:9.5px; color:var(--ink-2); text-transform:uppercase;">Markets</div><div style="font-weight:600; font-size:13px;">Tunisia, EU</div></div>
+                <div><div style="font-size:9.5px; color:var(--ink-2); text-transform:uppercase;">Safety Version</div><div style="font-weight:600; font-size:13px;">v{{ safetyVersionDisplay }}</div></div>
+                <div><div style="font-size:9.5px; color:var(--ink-2); text-transform:uppercase;">Dossier</div><div style="font-weight:600; font-size:13px;">{{ dossierCompleteness }}% complete</div></div>
+                <div><div style="font-size:9.5px; color:var(--ink-2); text-transform:uppercase;">Open Actions</div><div style="font-weight:600; font-size:13px; color:var(--amber);">4</div></div>
+                <div><div style="font-size:9.5px; color:var(--ink-2); text-transform:uppercase;">Active Tender</div><div style="font-weight:600; font-size:13px; color:{{ tenderStatusColor }};">{{ tenderStatusText }}</div></div>
+              </div>
+            </div>
+
+            <div style="display:flex; gap:2px; margin-bottom:14px; border-bottom:1px solid var(--line);">
+              <sc-for list="{{ prcTabs }}" as="t" hint-placeholder-count="8">
+                <div onClick="{{ t.onClick }}" style="padding:10px 16px; font-size:12.5px; font-weight:600; cursor:pointer; color:{{ t.color }}; border-bottom:2px solid {{ t.border }};">{{ t.label }}</div>
+              </sc-for>
+            </div>
+
+            <sc-if value="{{ prcIsOverview }}">
+              <div style="display:grid; grid-template-columns:1.4fr 1fr; gap:14px;">
+                <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:16px;">
+                  <div style="font-weight:700; font-size:13px; margin-bottom:10px;">Product &times; Market Matrix</div>
+                  <div style="display:grid; grid-template-columns:1fr repeat(4,1fr); font-size:11.5px;">
+                    <div></div>
+                    <div style="font-weight:700; text-align:center;">AMM</div>
+                    <div style="font-weight:700; text-align:center;">Safety Label</div>
+                    <div style="font-weight:700; text-align:center;">GMP</div>
+                    <div style="font-weight:700; text-align:center;">Tender</div>
+                    <sc-for list="{{ marketMatrix }}" as="m" hint-placeholder-count="2">
+                      <div style="padding:10px 0; font-weight:700; border-top:1px solid var(--stone-2);">{{ m.market }}</div>
+                      <div style="padding:10px 0; text-align:center; border-top:1px solid var(--stone-2);"><span style="background:{{ m.ammBg }}; color:{{ m.ammColor }}; font-size:10px; font-weight:700; padding:3px 7px; border-radius:3px;">{{ m.ammStatus }}</span></div>
+                      <div style="padding:10px 0; text-align:center; border-top:1px solid var(--stone-2);"><span style="background:{{ m.labelBg }}; color:{{ m.labelColor }}; font-size:10px; font-weight:700; padding:3px 7px; border-radius:3px;">{{ m.labelStatus }}</span></div>
+                      <div style="padding:10px 0; text-align:center; border-top:1px solid var(--stone-2);"><span style="background:var(--green-light); color:var(--green); font-size:10px; font-weight:700; padding:3px 7px; border-radius:3px;">OK</span></div>
+                      <div style="padding:10px 0; text-align:center; border-top:1px solid var(--stone-2);"><span style="background:{{ m.tenderBg }}; color:{{ m.tenderColor }}; font-size:10px; font-weight:700; padding:3px 7px; border-radius:3px;">{{ m.tenderStatus }}</span></div>
+                    </sc-for>
+                  </div>
+                </div>
+                <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:16px;">
+                  <div style="font-weight:700; font-size:13px; margin-bottom:10px;">Unresolved Actions</div>
+                  <sc-for list="{{ unresolvedActions }}" as="a" hint-placeholder-count="4">
+                    <div style="display:flex; gap:8px; padding:8px 0; border-bottom:1px solid var(--stone-2); font-size:11.5px;">
+                      <span style="font-family:var(--font-mono); color:var(--ink-2); min-width:52px;">{{ a.id }}</span>
+                      <span>{{ a.text }}</span>
+                    </div>
+                  </sc-for>
+                </div>
+              </div>
+            </sc-if>
+            <sc-if value="{{ prcIsOther }}">
+              <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:30px; text-align:center; color:var(--ink-2); font-size:12.5px;">
+                <div style="font-weight:700; color:var(--ink); margin-bottom:6px;">{{ prcTabLabel }}</div>
+                Full {{ prcTabLabel }} workspace for this product mirrors the dedicated module screens — see the left-hand navigation for the working view (Regulatory Intelligence, AMM Dossiers, Pharmacovigilance, Tender Copilot, Risk Lens, Evidence Vault, Audit &amp; Timeline).
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <!-- =============== REGULATORY INTELLIGENCE =============== -->
+        <sc-if value="{{ isRegulatory }}">
+          <div style="display:flex; height:100%;">
+            <div style="width:250px; min-width:250px; border-right:1px solid var(--line); background:var(--white); overflow-y:auto;">
+              <div style="padding:14px 16px; font-weight:700; font-size:12.5px; border-bottom:1px solid var(--line);">Monitored Sources</div>
+              <sc-for list="{{ regSources }}" as="src" hint-placeholder-count="4">
+                <div onClick="{{ src.onClick }}" style="padding:12px 16px; border-bottom:1px solid var(--stone-2); cursor:pointer; background:{{ src.bg }};">
+                  <div style="font-weight:700; font-size:12px;">{{ src.name }}</div>
+                  <div style="font-size:10.5px; color:var(--ink-2); margin-top:2px;">{{ src.authority }} &middot; {{ src.market }}</div>
+                  <div style="display:flex; align-items:center; gap:5px; margin-top:6px;">
+                    <div style="width:6px; height:6px; border-radius:50%; background:{{ src.healthColor }};"></div>
+                    <span style="font-size:10px; color:var(--ink-2);">{{ src.healthLabel }} &middot; polled {{ src.lastPoll }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="flex:1; overflow-y:auto; padding:20px 22px;">
+              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:12px;">
+                <div>
+                  <div style="font-family:var(--font-serif); font-size:19px; font-weight:600;">RC-2201 &middot; Annex I labeling &amp; PSUR obligation</div>
+                  <div style="font-size:11.5px; color:var(--ink-2);">EMA Official Journal &middot; Regulation (EU) 726/2004, Art. 16 &middot; detected 08:02 UTC</div>
+                </div>
+                <span style="background:{{ regChangeStatusBg }}; color:{{ regChangeStatusColor }}; font-size:11px; font-weight:700; padding:4px 10px; border-radius:3px; white-space:nowrap;">{{ regChangeStatusLabel }}</span>
+              </div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+                <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:14px;">
+                  <div style="font-size:10.5px; text-transform:uppercase; color:var(--ink-2); margin-bottom:8px;">Previous version &middot; v4</div>
+                  <div style="font-size:12.5px; line-height:1.7; font-family:var(--font-serif);">
+                    &sect;4.8 Undesirable effects. Marketing authorisation holders shall report hepatic adverse reactions in accordance with the applicable pharmacovigilance guideline. <span style="background:var(--red-light); text-decoration:line-through; color:var(--red);">A Periodic Safety Update Report shall be submitted every 36 months.</span>
+                  </div>
+                </div>
+                <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:14px;">
+                  <div style="font-size:10.5px; text-transform:uppercase; color:var(--ink-2); margin-bottom:8px;">Current version &middot; v5</div>
+                  <div style="font-size:12.5px; line-height:1.7; font-family:var(--font-serif);">
+                    &sect;4.8 Undesirable effects. Marketing authorisation holders shall report hepatic adverse reactions in accordance with the applicable pharmacovigilance guideline. <span style="background:var(--teal-light); color:var(--teal); font-weight:600;">A Periodic Safety Update Report shall be submitted every 12 months, and the product label shall carry the updated liver-injury warning set out in Annex I &sect;4.8a.</span>
+                  </div>
+                </div>
+              </div>
+              <div style="background:var(--stone); border:1px solid var(--line); border-radius:5px; padding:14px; margin-top:14px;">
+                <div style="font-weight:700; font-size:12px; margin-bottom:6px;">Impact preview</div>
+                <div style="font-size:12px; line-height:1.7;">Approving this change will affect: <strong>2 products</strong>, <strong>3 dossier requirements</strong>, <strong>1 active tender</strong>, <strong>4 open actions</strong>.</div>
+              </div>
+            </div>
+            <div style="width:300px; min-width:300px; border-left:1px solid var(--line); background:var(--white); overflow-y:auto; padding:18px;">
+              <div style="font-weight:700; font-size:12.5px; margin-bottom:12px;">Extracted Obligation</div>
+              <div style="font-size:12px; line-height:1.6; margin-bottom:12px;">Reduce PSUR periodicity to 12 months and add liver-injury warning to product label for all hepatotoxic-risk substances.</div>
+              <div style="display:flex; flex-direction:column; gap:8px; font-size:11.5px; margin-bottom:14px;">
+                <div><span style="color:var(--ink-2);">Citation</span> &middot; Annex I, &sect;4.8a</div>
+                <div><span style="color:var(--ink-2);">Affected product types</span> &middot; oral solid, hepatotoxic class</div>
+                <div><span style="color:var(--ink-2);">Effective date</span> &middot; 2026-09-01</div>
+                <div><span style="color:var(--ink-2);">Confidence</span> &middot; 0.94 (high)</div>
+                <div><span style="color:var(--ink-2);">Limitations</span> &middot; national transposition timelines not yet confirmed for Tunisia</div>
+              </div>
+              <sc-if value="{{ regChangeIsPending }}">
+                <div style="display:flex; gap:8px;">
+                  <button onClick="{{ approveRegChange }}" style="flex:1; background:var(--teal); color:#fff; border:none; border-radius:3px; padding:9px; font-weight:700; font-size:12px; cursor:pointer;">Approve requirement</button>
+                  <button style="background:transparent; border:1px solid var(--line); border-radius:3px; padding:9px 12px; font-size:12px; cursor:pointer;">Correct</button>
+                </div>
+              </sc-if>
+              <sc-if value="{{ regChangeIsApproved }}">
+                <div style="background:var(--teal-light); color:var(--teal); font-weight:700; font-size:12px; border-radius:3px; padding:9px; text-align:center;">&#10003; Approved by M. Haddad</div>
+              </sc-if>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- =============== AMM DOSSIER =============== -->
+        <sc-if value="{{ isDossier }}">
+          <div style="padding:22px 26px 60px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:16px;">
+              <div>
+                <div style="font-family:var(--font-serif); font-size:22px; font-weight:600;">AMM Dossier Evolution &middot; EU v5</div>
+                <div style="font-size:12px; color:var(--ink-2);">DOS-EU-0472 &middot; Drug X 500&nbsp;mg tablets &middot; stage: <strong style="color:{{ dossierStageColor }};">{{ dossierStageLabel }}</strong></div>
+              </div>
+              <div style="text-align:right;">
+                <div style="font-size:10px; text-transform:uppercase; color:var(--ink-2);">Completeness</div>
+                <div style="font-family:var(--font-mono); font-size:26px; font-weight:700; color:{{ dossierCompletenessColor }};">{{ dossierCompleteness }}%</div>
+              </div>
+            </div>
+
+            <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:16px; margin-bottom:14px;">
+              <div style="font-weight:700; font-size:12.5px; margin-bottom:10px;">Dossier Lifecycle</div>
+              <div style="display:flex; gap:2px;">
+                <sc-for list="{{ dossierLifecycle }}" as="p" hint-placeholder-count="11">
+                  <div style="flex:1; text-align:center; padding:8px 4px; border-top:3px solid {{ p.color }}; background:{{ p.bg }};">
+                    <div style="font-size:9.5px; font-weight:700; color:{{ p.textColor }};">{{ p.label }}</div>
+                  </div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:16px;">
+              <div style="font-weight:700; font-size:12.5px; margin-bottom:10px;">CTD Module Matrix</div>
+              <div style="display:grid; grid-template-columns:180px repeat(5,1fr); font-size:11.5px; align-items:stretch;">
+                <div></div>
+                <sc-for list="{{ ctdModules }}" as="cm" hint-placeholder-count="5">
+                  <div style="font-weight:700; text-align:center; padding-bottom:8px; border-bottom:2px solid var(--line);">{{ cm.label }}</div>
+                </sc-for>
+                <div style="padding:8px 0; color:var(--ink-2); font-weight:600;">Present / Expected</div>
+                <sc-for list="{{ ctdModules }}" as="cm" hint-placeholder-count="5">
+                  <div style="text-align:center; padding:8px 0; border-top:1px solid var(--stone-2);">{{ cm.present }}/{{ cm.expected }}</div>
+                </sc-for>
+                <div style="padding:8px 0; color:var(--ink-2); font-weight:600;">Missing</div>
+                <sc-for list="{{ ctdModules }}" as="cm" hint-placeholder-count="5">
+                  <div style="text-align:center; padding:8px 0; border-top:1px solid var(--stone-2); color:{{ cm.missingColor }}; font-weight:700;">{{ cm.missing }}</div>
+                </sc-for>
+                <div style="padding:8px 0; color:var(--ink-2); font-weight:600;">Status</div>
+                <sc-for list="{{ ctdModules }}" as="cm" hint-placeholder-count="5">
+                  <div style="text-align:center; padding:8px 0; border-top:1px solid var(--stone-2);"><span style="background:{{ cm.statusBg }}; color:{{ cm.statusColor }}; font-size:10px; font-weight:700; padding:3px 7px; border-radius:3px;">{{ cm.statusLabel }}</span></div>
+                </sc-for>
+              </div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 340px; gap:14px; margin-top:14px;">
+              <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:16px;">
+                <div style="font-weight:700; font-size:12.5px; margin-bottom:10px;">Document Register &middot; Module 1</div>
+                <sc-for list="{{ dossierDocs }}" as="doc" hint-placeholder-count="4">
+                  <div onClick="{{ doc.onClick }}" style="display:grid; grid-template-columns:1.6fr 1fr 1fr 1fr; align-items:center; padding:9px 0; border-bottom:1px solid var(--stone-2); cursor:pointer; font-size:11.5px;">
+                    <div style="font-weight:600;">{{ doc.name }}</div>
+                    <div>v{{ doc.version }}</div>
+                    <div style="color:var(--ink-2);">{{ doc.expiry }}</div>
+                    <div><span style="background:{{ doc.statusBg }}; color:{{ doc.statusColor }}; font-size:10px; font-weight:700; padding:3px 7px; border-radius:3px;">{{ doc.statusLabel }}</span></div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:16px;">
+                <div style="font-weight:700; font-size:12.5px; margin-bottom:10px;">Selected Document</div>
+                <div style="font-size:12px; font-weight:700; margin-bottom:6px;">{{ selectedDoc.name }}</div>
+                <div style="display:flex; flex-direction:column; gap:6px; font-size:11px; color:var(--ink-2);">
+                  <div>CTD section &middot; {{ selectedDoc.ctd }}</div>
+                  <div>Current version &middot; v{{ selectedDoc.version }}</div>
+                  <div>Issue date &middot; {{ selectedDoc.issued }}</div>
+                  <div>Expiry &middot; {{ selectedDoc.expiry }}</div>
+                  <div>Checksum &middot; <span style="font-family:var(--font-mono);">{{ selectedDoc.checksum }}</span></div>
+                  <div>Linked requirement &middot; REQ-EU-118</div>
+                  <div>Affected tender &middot; TR-44</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- =============== PHARMACOVIGILANCE =============== -->
+        <sc-if value="{{ isPV }}">
+          <div style="padding:22px 26px 60px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:14px;">
+              <div>
+                <div style="font-family:var(--font-serif); font-size:22px; font-weight:600;">Signal Desk &middot; S-021</div>
+                <div style="font-size:12px; color:var(--ink-2);">Drug X &times; Liver injury &middot; status: <strong style="color:{{ pvStatusColor }};">{{ pvStatusLabel }}</strong></div>
+              </div>
+              <sc-if value="{{ pvShowSciAgentsButton }}">
+                <button onClick="{{ openSciAgents }}" style="background:var(--violet); color:#fff; border:none; border-radius:3px; padding:10px 16px; font-weight:700; font-size:12.5px; cursor:pointer;">Open SciAgents Investigation &rarr;</button>
+              </sc-if>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(8,1fr); gap:10px; margin-bottom:16px;">
+              <sc-for list="{{ pvMetrics }}" as="m" hint-placeholder-count="8">
+                <div style="background:var(--white); border:1px solid var(--line); border-radius:4px; padding:10px;">
+                  <div style="font-size:9px; text-transform:uppercase; color:var(--ink-2); margin-bottom:4px;">{{ m.label }}</div>
+                  <div style="font-family:var(--font-mono); font-size:16px; font-weight:700;">{{ m.value }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="background:var(--red-light); border:1px solid var(--red); border-radius:4px; padding:10px 14px; margin-bottom:16px; font-size:12px; color:var(--red); font-weight:600;">
+              &#9888; Statistical signal &ne; confirmed causality. ROR/PRR elevation requires scientific and clinical review before any label action.
+            </div>
+            <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px;">
+              <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:14px;">
+                <div style="font-weight:700; font-size:12px; margin-bottom:10px;">Case Timeline</div>
+                <div style="display:flex; align-items:flex-end; gap:4px; height:90px;">
+                  <sc-for list="{{ pvTimeline }}" as="w" hint-placeholder-count="10">
+                    <div style="flex:1; background:var(--red); opacity:.75; height:{{ w.h }}px; border-radius:2px 2px 0 0;"></div>
+                  </sc-for>
+                </div>
+                <div style="font-size:10px; color:var(--ink-2); margin-top:6px;">Weekly reports, last 10 weeks</div>
+              </div>
+              <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:14px;">
+                <div style="font-weight:700; font-size:12px; margin-bottom:10px;">Seriousness Distribution</div>
+                <sc-for list="{{ pvSeriousness }}" as="s" hint-placeholder-count="3">
+                  <div style="margin-bottom:8px;">
+                    <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:3px;"><span>{{ s.label }}</span><span style="font-weight:700;">{{ s.count }}</span></div>
+                    <div style="height:6px; background:var(--stone-2); border-radius:3px;"><div style="height:6px; width:{{ s.pct }}%; background:{{ s.color }}; border-radius:3px;"></div></div>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:14px;">
+                <div style="font-weight:700; font-size:12px; margin-bottom:10px;">Co-medication</div>
+                <div style="font-size:12px; color:var(--ink-2); line-height:1.6;">Most frequent concomitant: <strong style="color:var(--ink);">Drug Y</strong> (co-reported in 27 of 45 unique cases). Median onset <strong>9 days</strong> post initiation.</div>
+              </div>
+            </div>
+            <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:16px; margin-top:14px;">
+              <div style="font-weight:700; font-size:12.5px; margin-bottom:8px;">Candidate Signal Summary</div>
+              <div style="font-size:12.5px; line-height:1.7;">63 individual case safety reports received; 18 probable duplicates removed, leaving 45 unique cases (12 serious). Reporting odds ratio 3.4, proportional reporting ratio 2.9, both above the disproportionality threshold. Confounders: concomitant hepatotoxic co-medication (Drug Y) present in 60% of cases; incomplete liver-function baseline data in 14 cases.</div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- =============== SCIAGENTS =============== -->
+        <sc-if value="{{ isSciAgents }}">
+          <div style="padding:22px 26px 60px;">
+            <div style="display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:16px;">
+              <div>
+                <div style="font-family:var(--font-serif); font-size:22px; font-weight:600; color:var(--violet);">SciAgents Live Investigation</div>
+                <div style="font-size:12px; color:var(--ink-2);">Run SCI-4471 &middot; Signal S-021 &middot; Drug X &times; Liver injury</div>
+              </div>
+              <button onClick="{{ runSciAgents }}" style="background:var(--violet); color:#fff; border:none; border-radius:3px; padding:10px 16px; font-weight:700; font-size:12.5px; cursor:pointer;">{{ sciRunButtonLabel }}</button>
+            </div>
+
+            <div style="display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-bottom:16px;">
+              <sc-for list="{{ sciAgentSteps }}" as="a" hint-placeholder-count="4">
+                <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:14px; opacity:{{ a.opacity }}; transition:opacity .3s;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+                    <div style="font-weight:700; font-size:12.5px; color:var(--violet);">{{ a.name }}</div>
+                    <span style="font-size:9.5px; font-weight:700; color:{{ a.statusColor }};">{{ a.statusLabel }}</span>
+                  </div>
+                  <div style="font-size:11px; color:var(--ink-2); margin-bottom:6px;"><strong>In</strong> {{ a.input }}</div>
+                  <div style="font-size:11.5px; line-height:1.5;">{{ a.output }}</div>
+                  <div style="display:flex; justify-content:space-between; margin-top:10px; font-size:10px; color:var(--ink-2);">
+                    <span>{{ a.duration }}</span><span>{{ a.cost }}</span>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+
+            <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:16px; margin-bottom:14px;">
+              <div style="font-weight:700; font-size:12.5px; margin-bottom:10px;">Biomedical Path Viewer</div>
+              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:12.5px;">
+                <sc-for list="{{ sciPath }}" as="p" hint-placeholder-count="6">
+                  <span style="display:flex; align-items:center; gap:6px;">
+                    <span style="background:var(--violet-light); color:var(--violet); font-weight:700; padding:5px 10px; border-radius:3px;">{{ p.node }}</span>
+                    <sc-if value="{{ p.verb }}"><span style="color:var(--ink-2); font-size:11px;">{{ p.verb }} &rarr;</span></sc-if>
+                  </span>
+                </sc-for>
+              </div>
+              <div style="font-size:11px; color:var(--ink-2); margin-top:10px;">4 supporting graph paths (Hetionet) &middot; 2 contradicting studies &middot; mechanistic score <strong style="color:var(--violet);">0.72</strong></div>
+            </div>
+
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+              <div style="background:var(--green-light); border:1px solid var(--green); border-radius:5px; padding:14px;">
+                <div style="font-weight:700; font-size:12px; color:var(--green); margin-bottom:6px;">Quality Gate &middot; Passed</div>
+                <div style="font-size:11.5px; color:var(--ink-2); line-height:1.6;">Grounding passed &middot; citations resolved to Hetionet entities &middot; novelty assessment: incremental (mechanism previously reported for structural analog).</div>
+              </div>
+              <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:14px;">
+                <div style="font-weight:700; font-size:12px; margin-bottom:8px;">Human Review Required</div>
+                <div style="font-size:11.5px; color:var(--ink-2); margin-bottom:10px;">Nothing here is finalized before review. Critic flags: sample size in contradicting studies is small (n=14, n=22).</div>
+                <sc-if value="{{ sciNeedsReview }}">
+                  <div style="display:flex; gap:6px;">
+                    <button onClick="{{ approveSciAgents }}" style="flex:1; background:var(--teal); color:#fff; border:none; border-radius:3px; padding:8px; font-weight:700; font-size:11.5px; cursor:pointer;">Approve</button>
+                    <button style="background:transparent; border:1px solid var(--line); border-radius:3px; padding:8px 10px; font-size:11.5px; cursor:pointer;">Request more evidence</button>
+                    <button style="background:transparent; border:1px solid var(--red); color:var(--red); border-radius:3px; padding:8px 10px; font-size:11.5px; cursor:pointer;">Reject</button>
+                  </div>
+                </sc-if>
+                <sc-if value="{{ sciIsApproved }}">
+                  <div style="background:var(--teal-light); color:var(--teal); font-weight:700; font-size:12px; border-radius:3px; padding:9px; text-align:center;">&#10003; Validated by Dr. L. Bennani &middot; VA-09 created</div>
+                </sc-if>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- =============== TENDER COPILOT =============== -->
+        <sc-if value="{{ isTender }}">
+          <div style="padding:22px 26px 60px;">
+            <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:16px; margin-bottom:14px; display:flex; justify-content:space-between; align-items:center;">
+              <div>
+                <div style="font-family:var(--font-serif); font-size:19px; font-weight:600;">TR-1183 &middot; Hospital Procurement for Drug X</div>
+                <div style="font-size:11.5px; color:var(--ink-2);">Buyer: Direction Centrale des Achats, Tunisia &middot; Deadline: 2026-08-04 &middot; Est. value &euro;480,000</div>
+              </div>
+              <span style="background:{{ tenderStatusBg }}; color:{{ tenderStatusColor }}; font-size:12px; font-weight:700; padding:6px 14px; border-radius:3px;">{{ tenderStatusText }}</span>
+            </div>
+            <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:16px;">
+              <div style="font-weight:700; font-size:12.5px; margin-bottom:10px;">Compliance Matrix &middot; Lot 1</div>
+              <div style="display:grid; grid-template-columns:1.6fr .7fr 1.1fr .8fr .9fr; font-size:11px; font-weight:700; color:var(--ink-2); padding-bottom:8px; border-bottom:1px solid var(--line);">
+                <div>Requirement</div><div>Type</div><div>Evidence</div><div>Validity</div><div>Compliance</div>
+              </div>
+              <sc-for list="{{ tenderRows }}" as="row" hint-placeholder-count="6">
+                <div onClick="{{ row.onClick }}" style="display:grid; grid-template-columns:1.6fr .7fr 1.1fr .8fr .9fr; align-items:center; padding:10px 0; border-bottom:1px solid var(--stone-2); font-size:12px; cursor:pointer;">
+                  <div style="font-weight:600;">{{ row.requirement }}</div>
+                  <div style="color:var(--ink-2);">{{ row.type }}</div>
+                  <div>{{ row.evidence }}</div>
+                  <div style="color:var(--ink-2);">{{ row.validity }}</div>
+                  <div><span style="background:{{ row.bg }}; color:{{ row.color }}; font-size:10px; font-weight:700; padding:3px 8px; border-radius:3px;">{{ row.status }}</span></div>
+                </div>
+              </sc-for>
+            </div>
+            <sc-if value="{{ tenderIsBlocked }}">
+              <div style="background:var(--red-light); border:1px solid var(--red); border-radius:5px; padding:14px; margin-top:14px;">
+                <div style="font-weight:700; font-size:12.5px; color:var(--red); margin-bottom:6px;">BLOCKED &mdash; outdated evidence</div>
+                <div style="font-size:12px; color:var(--ink); margin-bottom:10px;">Requirement: Current safety label. Evidence found: Label v2.1. Current validated version: v3.0. This lot cannot proceed until updated evidence is uploaded.</div>
+                <button onClick="{{ uploadEvidence }}" style="background:var(--navy); color:#fff; border:none; border-radius:3px; padding:9px 14px; font-weight:700; font-size:12px; cursor:pointer;">Upload Label v3.0</button>
+              </div>
+            </sc-if>
+            <sc-if value="{{ tenderIsReady }}">
+              <div style="background:var(--green-light); border:1px solid var(--green); border-radius:5px; padding:14px; margin-top:14px;">
+                <div style="font-weight:700; font-size:12.5px; color:var(--green); margin-bottom:6px;">Ready for final human review</div>
+                <div style="font-size:12px; color:var(--ink);">Recalculated after Label v3.0 upload. Bid/no-bid recommendation: <strong>Bid</strong> &middot; risk range low-moderate &middot; no missing mandatory documents. Final price and submission decision remain with the reviewer.</div>
+              </div>
+            </sc-if>
+          </div>
+        </sc-if>
+
+        <!-- =============== REVIEW CENTER =============== -->
+        <sc-if value="{{ isReview }}">
+          <div style="display:flex; height:100%;">
+            <div style="flex:1; overflow-y:auto; border-right:1px solid var(--line); background:var(--white);">
+              <div style="padding:16px 18px; border-bottom:1px solid var(--line); font-weight:700; font-size:13px;">Unified Review Inbox &middot; {{ reviewCount }} open</div>
+              <sc-for list="{{ reviewItems }}" as="r" hint-placeholder-count="5">
+                <div onClick="{{ r.onClick }}" style="padding:14px 18px; border-bottom:1px solid var(--stone-2); cursor:pointer; background:{{ r.bg }};">
+                  <div style="display:flex; justify-content:space-between;">
+                    <span style="font-weight:700; font-size:12.5px;">{{ r.title }}</span>
+                    <span style="font-size:10px; font-weight:700; color:{{ r.moduleColor }};">{{ r.module }}</span>
+                  </div>
+                  <div style="font-size:11px; color:var(--ink-2); margin-top:3px;">{{ r.reason }}</div>
+                  <div style="font-size:10px; color:var(--ink-2); margin-top:6px;">Confidence {{ r.confidence }} &middot; due {{ r.due }}</div>
+                </div>
+              </sc-for>
+            </div>
+            <div style="width:420px; min-width:420px; overflow-y:auto; padding:18px;">
+              <div style="font-weight:700; font-size:14px; margin-bottom:4px;">{{ selectedReview.title }}</div>
+              <div style="font-size:11px; color:var(--ink-2); margin-bottom:14px;">{{ selectedReview.module }} &middot; source v{{ selectedReview.sourceVersion }}</div>
+              <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:14px;">
+                <div style="background:var(--stone); border-radius:4px; padding:10px;">
+                  <div style="font-size:10px; text-transform:uppercase; color:var(--ink-2); margin-bottom:6px;">If approved</div>
+                  <div style="font-size:11.5px; line-height:1.5;">{{ selectedReview.ifApproved }}</div>
+                </div>
+                <div style="background:var(--stone); border-radius:4px; padding:10px;">
+                  <div style="font-size:10px; text-transform:uppercase; color:var(--ink-2); margin-bottom:6px;">If rejected</div>
+                  <div style="font-size:11.5px; line-height:1.5;">{{ selectedReview.ifRejected }}</div>
+                </div>
+              </div>
+              <div style="font-size:11.5px; color:var(--ink-2); margin-bottom:14px; line-height:1.6;">AI confidence {{ selectedReview.confidence }} &middot; limitations: {{ selectedReview.limitations }}</div>
+              <div style="display:flex; gap:6px; flex-wrap:wrap;">
+                <button style="background:var(--teal); color:#fff; border:none; border-radius:3px; padding:9px 14px; font-weight:700; font-size:12px; cursor:pointer;">Approve</button>
+                <button style="background:transparent; border:1px solid var(--line); border-radius:3px; padding:9px 12px; font-size:12px; cursor:pointer;">Correct</button>
+                <button style="background:transparent; border:1px solid var(--red); color:var(--red); border-radius:3px; padding:9px 12px; font-size:12px; cursor:pointer;">Reject</button>
+                <button style="background:transparent; border:1px solid var(--line); border-radius:3px; padding:9px 12px; font-size:12px; cursor:pointer;">Request evidence</button>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- =============== RISK LENS =============== -->
+        <sc-if value="{{ isRisk }}">
+          <div style="padding:22px 26px 60px;">
+            <div style="font-family:var(--font-serif); font-size:22px; font-weight:600; margin-bottom:4px;">Risk Lens</div>
+            <div style="font-size:12px; color:var(--ink-2); margin-bottom:16px;">Portfolio exposure &middot; Drug X 500&nbsp;mg &middot; no patient-level data shown</div>
+            <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:16px; margin-bottom:14px;">
+              <div style="font-weight:700; font-size:12.5px; margin-bottom:10px;">Risk Constellation &middot; causal chain</div>
+              <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap; font-size:12px;">
+                <sc-for list="{{ riskChain }}" as="c" hint-placeholder-count="5">
+                  <span style="display:flex; align-items:center; gap:6px;">
+                    <span style="background:{{ c.bg }}; color:{{ c.color }}; font-weight:700; padding:6px 11px; border-radius:3px;">{{ c.label }}</span>
+                    <sc-if value="{{ c.hasNext }}"><span style="color:var(--ink-2);">&rarr;</span></sc-if>
+                  </span>
+                </sc-for>
+              </div>
+            </div>
+            <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:16px;">
+              <div style="font-weight:700; font-size:12.5px; margin-bottom:10px;">Risk Register</div>
+              <div style="display:grid; grid-template-columns:1.6fr .9fr .9fr .9fr 1fr; font-size:11px; font-weight:700; color:var(--ink-2); padding-bottom:8px; border-bottom:1px solid var(--line);">
+                <div>Risk</div><div>Probability</div><div>Impact</div><div>Residual</div><div>Owner</div>
+              </div>
+              <sc-for list="{{ risks }}" as="k" hint-placeholder-count="5">
+                <div style="display:grid; grid-template-columns:1.6fr .9fr .9fr .9fr 1fr; align-items:center; padding:10px 0; border-bottom:1px solid var(--stone-2); font-size:12px;">
+                  <div style="font-weight:600;">{{ k.name }}</div>
+                  <div>{{ k.probability }}</div>
+                  <div>{{ k.impact }}</div>
+                  <div><span style="background:{{ k.bg }}; color:{{ k.color }}; font-size:10px; font-weight:700; padding:3px 8px; border-radius:3px;">{{ k.residual }}</span></div>
+                  <div style="color:var(--ink-2);">{{ k.owner }}</div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- =============== EVIDENCE VAULT =============== -->
+        <sc-if value="{{ isEvidence }}">
+          <div style="padding:22px 26px 60px;">
+            <div style="font-family:var(--font-serif); font-size:22px; font-weight:600; margin-bottom:4px;">Evidence Vault</div>
+            <div style="font-size:12px; color:var(--ink-2); margin-bottom:16px;">Immutable provenance for every document behind a decision</div>
+            <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:16px;">
+              <div style="display:grid; grid-template-columns:1.5fr .8fr 1fr 1fr 1fr; font-size:11px; font-weight:700; color:var(--ink-2); padding-bottom:8px; border-bottom:1px solid var(--line);">
+                <div>Document</div><div>Version</div><div>Source</div><div>SHA-256</div><div>Status</div>
+              </div>
+              <sc-for list="{{ evidenceDocs }}" as="e" hint-placeholder-count="5">
+                <div style="display:grid; grid-template-columns:1.5fr .8fr 1fr 1fr 1fr; align-items:center; padding:10px 0; border-bottom:1px solid var(--stone-2); font-size:11.5px;">
+                  <div style="font-weight:600;">{{ e.name }}</div>
+                  <div>v{{ e.version }}</div>
+                  <div style="color:var(--ink-2);">{{ e.source }}</div>
+                  <div style="font-family:var(--font-mono); font-size:10px; color:var(--ink-2);">{{ e.checksum }}</div>
+                  <div><span style="background:{{ e.bg }}; color:{{ e.color }}; font-size:10px; font-weight:700; padding:3px 8px; border-radius:3px;">{{ e.status }}</span></div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- =============== AUDIT & TIMELINE =============== -->
+        <sc-if value="{{ isAudit }}">
+          <div style="padding:22px 26px 60px;">
+            <div style="font-family:var(--font-serif); font-size:22px; font-weight:600; margin-bottom:4px;">Audit &amp; Timeline</div>
+            <div style="font-size:12px; color:var(--ink-2); margin-bottom:16px;">Correlation <span style="font-family:var(--font-mono);">CORR-88213</span> &middot; full event chain</div>
+            <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:16px;">
+              <sc-for list="{{ auditEvents }}" as="ev" hint-placeholder-count="9">
+                <div style="display:flex; gap:12px; padding:10px 0; border-bottom:1px solid var(--stone-2);">
+                  <div style="font-family:var(--font-mono); font-size:10.5px; color:var(--ink-2); min-width:64px;">{{ ev.ts }}</div>
+                  <div style="width:6px; height:6px; border-radius:50%; background:{{ ev.color }}; margin-top:5px; min-width:6px;"></div>
+                  <div style="flex:1;">
+                    <div style="font-size:12px; font-weight:600; font-family:var(--font-mono);">{{ ev.type }}</div>
+                    <div style="font-size:11px; color:var(--ink-2);">{{ ev.detail }} &middot; actor: {{ ev.actor }} &middot; latency {{ ev.latency }}</div>
+                  </div>
+                </div>
+              </sc-for>
+            </div>
+          </div>
+        </sc-if>
+
+        <!-- =============== ADMINISTRATION =============== -->
+        <sc-if value="{{ isAdmin }}">
+          <div style="padding:22px 26px 60px;">
+            <div style="font-family:var(--font-serif); font-size:22px; font-weight:600; margin-bottom:16px;">Administration</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px;">
+              <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:16px;">
+                <div style="font-weight:700; font-size:12.5px; margin-bottom:10px;">Monitored Sources &amp; Health</div>
+                <sc-for list="{{ adminSources }}" as="s" hint-placeholder-count="4">
+                  <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--stone-2); font-size:12px;">
+                    <span>{{ s.name }}</span>
+                    <span style="color:{{ s.color }}; font-weight:700;">{{ s.status }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:16px;">
+                <div style="font-weight:700; font-size:12.5px; margin-bottom:10px;">Model Registry</div>
+                <sc-for list="{{ adminModels }}" as="m" hint-placeholder-count="3">
+                  <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--stone-2); font-size:12px;">
+                    <span>{{ m.name }}</span>
+                    <span style="font-family:var(--font-mono); color:var(--ink-2);">{{ m.version }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:16px;">
+                <div style="font-weight:700; font-size:12.5px; margin-bottom:10px;">Users &amp; Roles</div>
+                <sc-for list="{{ adminUsers }}" as="u" hint-placeholder-count="4">
+                  <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid var(--stone-2); font-size:12px;">
+                    <span>{{ u.name }}</span>
+                    <span style="color:var(--ink-2);">{{ u.role }}</span>
+                  </div>
+                </sc-for>
+              </div>
+              <div style="background:var(--white); border:1px solid var(--line); border-radius:5px; padding:16px;">
+                <div style="font-weight:700; font-size:12.5px; margin-bottom:10px;">Retention &amp; Audit Policy</div>
+                <div style="font-size:12px; color:var(--ink-2); line-height:1.7;">Regulatory records: 10 years &middot; PV case data: indefinite &middot; audit log: append-only, 7-year minimum retention &middot; SciAgents run artifacts: 5 years.</div>
+              </div>
+            </div>
+          </div>
+        </sc-if>
+
+      </div>
+    </div>
+
+    <!-- BOTTOM LIVE EVENT STRIP -->
+    <sc-if value="{{ showLiveStrip }}">
+      <div style="height:34px; min-height:34px; background:var(--navy); color:#dfe4ee; display:flex; align-items:center; padding:0 18px; gap:10px; font-size:11px;">
+        <div style="width:6px; height:6px; border-radius:50%; background:var(--amber); animation:prego-pulse 1.4s infinite;"></div>
+        <span style="font-weight:700;">Live propagation:</span>
+        <span>{{ liveStripText }}</span>
+      </div>
+    </sc-if>
   </div>
-
-  <div style="{{ hintStyle }}">♪ Activez le son pour la musique</div>
-
 </div>
+
 </x-dc>
-<script type="text/x-dc" data-dc-script data-props="{
-  &quot;$preview&quot;: { &quot;width&quot;: &quot;100%&quot;, &quot;height&quot;: &quot;100%&quot; },
-  &quot;title&quot;: { &quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Happy Birthday Hedil&quot;, &quot;tsType&quot;: &quot;string&quot; },
-  &quot;subtitle&quot;: { &quot;editor&quot;: &quot;text&quot;, &quot;default&quot;: &quot;Wishing you a beautiful year filled with happiness, success and unforgettable moments.&quot;, &quot;tsType&quot;: &quot;string&quot; },
-  &quot;titleColorA&quot;: { &quot;editor&quot;: &quot;color&quot;, &quot;default&quot;: &quot;#ffd98a&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Couleurs du titre&quot; },
-  &quot;titleColorB&quot;: { &quot;editor&quot;: &quot;color&quot;, &quot;default&quot;: &quot;#f7a8d0&quot;, &quot;tsType&quot;: &quot;string&quot;, &quot;section&quot;: &quot;Couleurs du titre&quot; }
-}">
+<script type="text/x-dc" data-dc-script>
+const PALETTE = {
+  navy:'#101828', teal:'#0e6b62', tealLight:'#e4f0ee', amber:'#96650f', amberLight:'#faf1de',
+  red:'#a3312a', redLight:'#fbe9e8', green:'#2f7a4f', greenLight:'#e8f3ec', violet:'#5b4a8a',
+  violetLight:'#efebf6', blue:'#2c5590', blueLight:'#e8eef7', gray:'#8b8f97', grayLight:'#eef0f1', ink2:'#5b6274'
+};
+
+const NAV = [
+  {id:'command-center', label:'Command Center'},
+  {id:'products', label:'Products'},
+  {id:'regulatory', label:'Regulatory Intelligence'},
+  {id:'dossier', label:'AMM Dossiers'},
+  {id:'pv', label:'Pharmacovigilance'},
+  {id:'tender', label:'Tender Copilot'},
+  {id:'review', label:'Review Center'},
+  {id:'risk', label:'Risk Lens'},
+  {id:'evidence', label:'Evidence Vault'},
+  {id:'audit', label:'Audit & Timeline'},
+  {id:'admin', label:'Administration'}
+];
+
+const ROLES = [
+  {id:'regulatory-analyst', label:'Regulatory Affairs Analyst'},
+  {id:'quality-cmc', label:'Quality / CMC Reviewer'},
+  {id:'pv-officer', label:'Pharmacovigilance Officer'},
+  {id:'tender-manager', label:'Market Access / Tender Manager'},
+  {id:'qualified-reviewer', label:'Qualified Reviewer'},
+  {id:'executive', label:'Executive / Risk Manager'},
+  {id:'administrator', label:'Administrator'}
+];
+
+const RIBBON_META = [
+  {label:'Source Detected', detail:'EMA — PSUR & label update', who:'Source Watcher', time:'08:02'},
+  {label:'Change Extracted', detail:'Annex I §4.8 obligation', who:'Extraction Engine', time:'08:02'},
+  {label:'Human Approval', detail:'Requirement approved', who:'M. Haddad', time:'09:14'},
+  {label:'Requirement Updated', detail:'REQ-EU-118 revised', who:'System', time:'09:14'},
+  {label:'Dossier Recalculated', detail:'EU Dossier v5 incomplete', who:'System', time:'09:15'},
+  {label:'Signal Generated', detail:'S-021 Drug X × Liver injury', who:'PV Engine', time:'11:40'},
+  {label:'SciAgents Investigation', detail:'Mechanism score 0.72', who:'SciAgents', time:'13:05'},
+  {label:'Reviewer Validated', detail:'VA-09 approved', who:'Dr. L. Bennani', time:'14:22'},
+  {label:'Tender Ready', detail:'Label v3.0 uploaded, TR-44 unblocked', who:'System', time:'15:47'}
+];
+
+const ROLE_TASKS = {
+  'regulatory-analyst': [
+    {title:'Approve RC-2201 requirement', meta:'EMA Annex I §4.8 · due today', color:PALETTE.blue},
+    {title:'Assign dossier action for EU v5', meta:'Module 1 gap · REQ-EU-118', color:PALETTE.amber},
+    {title:'Review product-market gap', meta:'Tunisia transposition unconfirmed', color:PALETTE.gray},
+    {title:'Compare Annex versions v4 vs v5', meta:'2 obligations changed', color:PALETTE.blue}
+  ],
+  'quality-cmc': [
+    {title:'Evidence awaiting quality review', meta:'CoA Batch B-2291 · Module 3', color:PALETTE.blue},
+    {title:'Stability gap flagged', meta:'36-month data missing, EU site', color:PALETTE.amber},
+    {title:'Site inconsistency', meta:'Manufacturing address mismatch', color:PALETTE.red},
+    {title:'Document version conflict', meta:'Specification v2 vs v3', color:PALETTE.gray}
+  ],
+  'pv-officer': [
+    {title:'Review candidate signal S-021', meta:'ROR 3.4 · 12 serious cases', color:PALETTE.red},
+    {title:'SciAgents run awaiting review', meta:'Gate passed, mechanism 0.72', color:PALETTE.violet},
+    {title:'Validate required action VA-09', meta:'Label liver-injury warning', color:PALETTE.amber},
+    {title:'Emerging trend check', meta:'Weekly case volume +18%', color:PALETTE.blue}
+  ],
+  'tender-manager': [
+    {title:'TR-1183 blocked on evidence', meta:'Label v2.1 outdated · deadline 17d', color:PALETTE.red},
+    {title:'Missing mandatory document', meta:'Cold-chain declaration, Lot 2', color:PALETTE.amber},
+    {title:'Bid/no-bid review', meta:'Est. value €480,000', color:PALETTE.blue},
+    {title:'Deadline pressure', meta:'2 tenders due within 30 days', color:PALETTE.gray}
+  ],
+  'qualified-reviewer': [
+    {title:'Unified review inbox', meta:'5 items awaiting decision', color:PALETTE.blue},
+    {title:'SciAgents investigation SCI-4471', meta:'Requires scientific sign-off', color:PALETTE.violet},
+    {title:'RC-2201 requirement', meta:'Regulatory analyst proposal', color:PALETTE.amber},
+    {title:'Tender evidence correction', meta:'Label v3.0 replacing v2.1', color:PALETTE.gray}
+  ],
+  'executive': [
+    {title:'Portfolio exposure elevated', meta:'Patient-safety risk trending up', color:PALETTE.red},
+    {title:'Tender value at risk', meta:'€480,000 blocked pending evidence', color:PALETTE.amber},
+    {title:'Control effectiveness review', meta:'Quarterly compliance trend', color:PALETTE.blue},
+    {title:'Review time above target', meta:'Median 6.2h vs 4h target', color:PALETTE.gray}
+  ],
+  'administrator': [
+    {title:'Source health check', meta:'1 connector degraded', color:PALETTE.amber},
+    {title:'Model registry update', meta:'Extraction model v2.3 available', color:PALETTE.blue},
+    {title:'Retention policy review', meta:'Annual compliance audit due', color:PALETTE.gray},
+    {title:'New user provisioning', meta:'2 pending access requests', color:PALETTE.blue}
+  ]
+};
+
 class Component extends DCLogic {
-  state = { reveal: false, revealSub: false, showReplay: false, soundOn: false, showHint: true };
+  state = {
+    view: 'command-center', role: 'regulatory-analyst', navCollapsed: false,
+    demoStage: 0, demoPlaying: false, viewMode: 'orbit',
+    prcTab: 'overview', regChangeApproved: false, sciRunning: false, sciStep: -1, sciApproved: false,
+    selectedDocId: 'doc-2', selectedReviewId: 'rv-1'
+  };
 
-  // ---------- lifecycle ----------
-  componentDidMount() {
-    this.reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    this.dynamics = [];
-    this.flames = [];
-    this.layers = [];
-    this.candles = [];
-    this.cam = { angle: 0, radius: 9.5, height: 5.2, orbit: 0 };
-    this.fit = 1;
-    this._waitLibs();
-  }
-  componentWillUnmount() {
-    this._stop = true;
-    if (this.tl) this.tl.kill();
-    if (this.renderer) this.renderer.dispose();
-    if (this.audio) this._stopMusic();
-    window.removeEventListener('resize', this._onResize);
-  }
-  _waitLibs() {
-    if (this._stop) return;
-    if (window.THREE && window.gsap && this.mount) { this._init(); return; }
-    setTimeout(() => this._waitLibs(), 60);
-  }
+  componentWillUnmount() { if (this._t) clearInterval(this._t); if (this._sciT) clearInterval(this._sciT); }
 
-  // ---------- setup ----------
-  _init() {
-    const THREE = window.THREE;
-    const w = this.mount.clientWidth || window.innerWidth;
-    const h = this.mount.clientHeight || window.innerHeight;
+  setView(v) { this.setState({ view: v }); }
+  toggleNav() { this.setState(s => ({ navCollapsed: !s.navCollapsed })); }
+  onRoleChange(e) { this.setState({ role: e.target.value }); }
 
-    const scene = new THREE.Scene();
-    scene.fog = new THREE.FogExp2(0x0a0512, 0.028);
-    this.scene = scene;
-
-    const camera = new THREE.PerspectiveCamera(42, w / h, 0.1, 100);
-    this.camera = camera;
-    this._computeFit(w, h);
-
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(w, h);
-    renderer.outputEncoding = THREE.sRGBEncoding;
-    renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.15;
-    this.mount.appendChild(renderer.domElement);
-    this.renderer = renderer;
-
-    this.target = new THREE.Vector3(0, 1.35, 0);
-
-    // ---- lights ----
-    this.ambient = new THREE.AmbientLight(0x5a4a78, 0.5);
-    scene.add(this.ambient);
-
-    this.keyLight = new THREE.SpotLight(0xffe9c9, 0, 30, Math.PI / 4, 0.5, 1.2);
-    this.keyLight.position.set(0, 12, 4);
-    this.keyLight.target.position.set(0, 1, 0);
-    scene.add(this.keyLight, this.keyLight.target);
-
-    this.rimA = new THREE.PointLight(0xf7a8d0, 0.0, 22, 2);
-    this.rimA.position.set(-7, 5, -3);
-    this.rimB = new THREE.PointLight(0xb48fd8, 0.0, 22, 2);
-    this.rimB.position.set(7, 4, -4);
-    this.warm = new THREE.PointLight(0xffcf8a, 0.0, 12, 2);
-    this.warm.position.set(0, 4, 3);
-    scene.add(this.rimA, this.rimB, this.warm);
-
-    this._buildPlate();
-    this._buildCake();
-    this._buildCandles();
-    this._buildFloaters();
-    this._buildConfetti();
-
-    this._onResize = () => this._resize();
-    window.addEventListener('resize', this._onResize);
-
-    this.clock = new THREE.Clock();
-    this._loop();
-
-    if (this.reduced) { this._staticFinal(); }
-    else { this._buildTimeline(); }
-  }
-
-  _resize() {
-    if (!this.renderer) return;
-    const w = this.mount.clientWidth, h = this.mount.clientHeight;
-    this.camera.aspect = w / h; this.camera.updateProjectionMatrix();
-    this.renderer.setSize(w, h);
-    this._computeFit(w, h);
-  }
-
-  _computeFit(w, h) {
-    const aspect = w / h;
-    // portrait / narrow phones: dolly the camera back so the tall cake fits
-    this.fit = aspect >= 1 ? 1 : Math.min(2.2, 1 + (1 - aspect) * 1.15);
-  }
-
-  // ---------- geometry builders ----------
-  _buildPlate() {
-    const THREE = window.THREE;
-    const g = new THREE.Group();
-    // glossy plate
-    const plate = new THREE.Mesh(
-      new THREE.CylinderGeometry(3.4, 3.5, 0.28, 64),
-      new THREE.MeshStandardMaterial({ color: 0x1a1226, metalness: 0.9, roughness: 0.12, emissive: 0x140b1e, emissiveIntensity: 0.4 })
-    );
-    plate.position.y = 0.14;
-    g.add(plate);
-    // gold rim
-    const rim = new THREE.Mesh(
-      new THREE.TorusGeometry(3.42, 0.045, 16, 80),
-      new THREE.MeshStandardMaterial({ color: 0xffcf6b, metalness: 1, roughness: 0.25, emissive: 0x3a2600, emissiveIntensity: 0.5 })
-    );
-    rim.rotation.x = Math.PI / 2; rim.position.y = 0.28;
-    g.add(rim);
-    // light pool
-    const pool = new THREE.Mesh(
-      new THREE.CircleGeometry(6, 64),
-      new THREE.MeshBasicMaterial({ color: 0xffcf8a, transparent: true, opacity: 0.06, blending: THREE.AdditiveBlending, depthWrite: false })
-    );
-    pool.rotation.x = -Math.PI / 2; pool.position.y = 0.02;
-    g.add(pool);
-    this.plateGroup = g;
-    this.scene.add(g);
-  }
-
-  _buildCake() {
-    const THREE = window.THREE;
-    const specs = [
-      { r: 2.45, h: 0.75, color: 0xf0c6db },   // rose poudré
-      { r: 2.05, h: 0.62, color: 0xf6ead6 },   // cream
-      { r: 1.68, h: 0.58, color: 0xd6b8ec },   // mauve
-      { r: 1.30, h: 0.54, color: 0xf7c9de }    // rose
-    ];
-    let base = 0.28; // plate top
-    this.cakeTopY = base;
-    specs.forEach((s, i) => {
-      const grp = new THREE.Group();
-      const body = new THREE.Mesh(
-        new THREE.CylinderGeometry(s.r, s.r * 1.02, s.h, 64),
-        new THREE.MeshStandardMaterial({ color: s.color, roughness: 0.55, metalness: 0.05, emissive: s.color, emissiveIntensity: 0.0 })
-      );
-      grp.add(body);
-      // gold band on top edge
-      const band = new THREE.Mesh(
-        new THREE.TorusGeometry(s.r, 0.05, 12, 72),
-        new THREE.MeshStandardMaterial({ color: 0xffcf6b, metalness: 1, roughness: 0.3, emissive: 0x2a1c00, emissiveIntensity: 0.4 })
-      );
-      band.rotation.x = Math.PI / 2; band.position.y = s.h / 2;
-      grp.add(band);
-
-      // ---- chocolate ganache decoration ----
-      const choco = new THREE.MeshStandardMaterial({ color: 0x3a2013, roughness: 0.32, metalness: 0.3, emissive: 0x180b04, emissiveIntensity: 0.25 });
-      // glossy ganache lip running around the top edge
-      const lip = new THREE.Mesh(new THREE.TorusGeometry(s.r + 0.01, 0.085, 14, 90), choco);
-      lip.rotation.x = Math.PI / 2; lip.position.y = s.h / 2 - 0.03;
-      grp.add(lip);
-      // drips hanging over the edge
-      const dripCount = Math.round(s.r * 8);
-      for (let j = 0; j < dripCount; j++) {
-        const ang = (j / dripCount) * Math.PI * 2 + Math.random() * 0.15;
-        const len = 0.16 + Math.random() * 0.22;
-        const drip = new THREE.Mesh(new THREE.SphereGeometry(0.06, 8, 8), choco);
-        drip.scale.set(1, len / 0.10, 1);
-        drip.position.set(Math.cos(ang) * s.r, s.h / 2 - 0.05 - len * 0.5, Math.sin(ang) * s.r);
-        const blob = new THREE.Mesh(new THREE.SphereGeometry(0.07, 8, 8), choco);
-        blob.position.set(Math.cos(ang) * s.r, s.h / 2 - 0.05 - len, Math.sin(ang) * s.r);
-        grp.add(drip, blob);
-      }
-      // chocolate pieces on the exposed top ring of each tier
-      const nextR = specs[i + 1] ? specs[i + 1].r : null;
-      if (nextR) {
-        const ringR = (s.r + nextR) / 2;
-        const chipCount = Math.max(8, Math.round(ringR * 6));
-        for (let j = 0; j < chipCount; j++) {
-          const ang = (j / chipCount) * Math.PI * 2 + 0.25;
-          const chip = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.11, 0.05), choco);
-          chip.position.set(Math.cos(ang) * ringR, s.h / 2 + 0.05, Math.sin(ang) * ringR);
-          chip.rotation.y = Math.random() * Math.PI;
-          chip.rotation.z = (Math.random() - 0.5) * 0.5;
-          grp.add(chip);
-        }
-      }
-
-      const targetY = base + s.h / 2;
-      grp.userData = { targetY, body };
-      grp.position.y = 13 + i * 0.5;
-      grp.visible = false;
-      this.scene.add(grp);
-      this.layers.push(grp);
-      base += s.h;
-      this.cakeTopY = base;
-    });
-  }
-
-  _digitCells() {
-    const pat = ['111', '001', '111', '100', '111']; // digit "2"
-    const sp = 0.30, gap = 0.5;
-    const digitW = 2 * sp;
-    const centers = [-(digitW / 2 + gap / 2), (digitW / 2 + gap / 2)];
-    const d0 = [], d1 = [];
-    for (let r = 0; r < 5; r++) {
-      for (let c = 0; c < 3; c++) {
-        if (pat[r][c] === '1') {
-          const lx = (c - 1) * sp, lz = (r - 2) * sp;
-          d0.push([centers[0] + lx, lz]);
-          d1.push([centers[1] + lx, lz]);
-        }
-      }
-    }
-    // interleave into symmetric pairs
-    const pairs = [];
-    for (let i = 0; i < d0.length; i++) pairs.push([d0[i], d1[i]]);
-    return pairs; // 11 pairs = 22 candles
-  }
-
-  _buildCandles() {
-    const THREE = window.THREE;
-    const pairs = this._digitCells();
-    const topY = this.cakeTopY;
-    const candleH = 0.72, candleR = 0.048;
-    const colors = [0xf7c9de, 0xffffff, 0xd6b8ec, 0xffe6b0];
-    this.candlePairs = [];
-    pairs.forEach((pair, pi) => {
-      const grpPair = [];
-      pair.forEach((pos, k) => {
-        const grp = new THREE.Group();
-        const idx = this.candles.length;
-        const body = new THREE.Mesh(
-          new THREE.CylinderGeometry(candleR, candleR, candleH, 16),
-          new THREE.MeshStandardMaterial({ color: colors[idx % colors.length], roughness: 0.35, metalness: 0.1, emissive: 0x000000 })
-        );
-        // spiral stripe hint via a thin band
-        const wick = new THREE.Mesh(
-          new THREE.CylinderGeometry(0.012, 0.012, 0.09, 6),
-          new THREE.MeshStandardMaterial({ color: 0x2a2a2a })
-        );
-        wick.position.y = candleH / 2 + 0.04;
-        grp.add(body, wick);
-
-        // flame group (hidden until ignite)
-        const flame = new THREE.Group();
-        const outer = new THREE.Mesh(
-          new THREE.ConeGeometry(0.075, 0.26, 12),
-          new THREE.MeshBasicMaterial({ color: 0xff9a3c, transparent: true, opacity: 0.75, blending: THREE.AdditiveBlending, depthWrite: false })
-        );
-        outer.position.y = 0.13;
-        const inner = new THREE.Mesh(
-          new THREE.ConeGeometry(0.035, 0.15, 10),
-          new THREE.MeshBasicMaterial({ color: 0xfff2c0, transparent: true, opacity: 0.95, blending: THREE.AdditiveBlending, depthWrite: false })
-        );
-        inner.position.y = 0.10;
-        const glow = new THREE.Sprite(new THREE.SpriteMaterial({
-          map: this._glowTex(), color: 0xffcf7a, transparent: true, opacity: 0.9, blending: THREE.AdditiveBlending, depthWrite: false
-        }));
-        glow.scale.set(0.6, 0.6, 0.6); glow.position.y = 0.12;
-        flame.add(glow, outer, inner);
-        flame.position.y = candleH / 2 + 0.09;
-        flame.visible = false;
-        flame.userData = { phase: Math.random() * 6.28, outer, inner, glow };
-        grp.add(flame);
-        this.flames.push(flame);
-
-        grp.userData = {
-          targetY: topY + candleH / 2,
-          x: pos[0], z: pos[1], flame
-        };
-        grp.position.set(pos[0], 13 + Math.random() * 2, pos[1]);
-        grp.visible = false;
-        this.scene.add(grp);
-        this.candles.push(grp);
-        grpPair.push(grp);
+  toggleDemo() {
+    if (this.state.demoPlaying) { clearInterval(this._t); this.setState({ demoPlaying: false }); return; }
+    if (this.state.demoStage >= 8) { this.setState({ demoStage: 0 }); }
+    this.setState({ demoPlaying: true });
+    this._t = setInterval(() => {
+      this.setState(s => {
+        const next = s.demoStage + 1;
+        if (next >= 8) { clearInterval(this._t); return { demoStage: 8, demoPlaying: false }; }
+        return { demoStage: next };
       });
-      this.candlePairs.push(grpPair);
-    });
-  }
-
-  _glowTex() {
-    if (this._gtex) return this._gtex;
-    const c = document.createElement('canvas'); c.width = c.height = 64;
-    const ctx = c.getContext('2d');
-    const g = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
-    g.addColorStop(0, 'rgba(255,240,200,1)');
-    g.addColorStop(0.4, 'rgba(255,190,110,0.6)');
-    g.addColorStop(1, 'rgba(255,150,80,0)');
-    ctx.fillStyle = g; ctx.fillRect(0, 0, 64, 64);
-    this._gtex = new window.THREE.CanvasTexture(c);
-    return this._gtex;
-  }
-
-  _buildFloaters() {
-    const THREE = window.THREE;
-    const n = 160;
-    const pos = new Float32Array(n * 3);
-    for (let i = 0; i < n; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * 20;
-      pos[i * 3 + 1] = Math.random() * 12 - 1;
-      pos[i * 3 + 2] = (Math.random() - 0.5) * 16 - 2;
-    }
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    const mat = new THREE.PointsMaterial({ size: 0.045, color: 0xffe6c0, transparent: true, opacity: 0.5, blending: THREE.AdditiveBlending, depthWrite: false, map: this._glowTex() });
-    this.floaters = new THREE.Points(geo, mat);
-    this.scene.add(this.floaters);
-  }
-
-  _buildConfetti() {
-    const THREE = window.THREE;
-    const n = 220;
-    const pos = new Float32Array(n * 3);
-    const col = new Float32Array(n * 3);
-    this.confVel = [];
-    const palette = [[247, 168, 208], [255, 207, 107], [180, 143, 216], [255, 255, 255]];
-    for (let i = 0; i < n; i++) {
-      pos[i * 3] = (Math.random() - 0.5) * 14;
-      pos[i * 3 + 1] = 8 + Math.random() * 10;
-      pos[i * 3 + 2] = (Math.random() - 0.5) * 8 - 1;
-      const c = palette[i % palette.length];
-      col[i * 3] = c[0] / 255; col[i * 3 + 1] = c[1] / 255; col[i * 3 + 2] = c[2] / 255;
-      this.confVel.push({ vy: 0.5 + Math.random() * 0.7, sway: 0.4 + Math.random() * 0.8, ph: Math.random() * 6.28 });
-    }
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
-    const mat = new THREE.PointsMaterial({ size: 0.14, vertexColors: true, transparent: true, opacity: 0, depthWrite: false });
-    this.confetti = new THREE.Points(geo, mat);
-    this.confetti.visible = false;
-    this.scene.add(this.confetti);
-    this.confActive = false;
-  }
-
-  // ---------- timeline ----------
-  _buildTimeline() {
-    const gsap = window.gsap;
-    const tl = gsap.timeline();
-    this.tl = tl;
-
-    // intro: light ramp + camera settle
-    tl.to(this.cam, { radius: 7.2, height: 3.1, duration: 2.2, ease: 'power2.inOut' }, 0);
-    tl.to(this.keyLight, { intensity: 1.4, duration: 1.6, ease: 'power2.out' }, 0.2);
-    tl.to(this.rimA, { intensity: 0.7, duration: 1.6 }, 0.2);
-    tl.to(this.rimB, { intensity: 0.6, duration: 1.6 }, 0.2);
-    tl.to(this.ambient, { intensity: 0.65, duration: 1.6 }, 0.2);
-
-    // cake layers
-    this.layers.forEach((L, i) => { tl.add(() => this._dropLayer(i), 1.3 + i * 0.85); });
-
-    // candles two-by-two
-    const candleStart = 1.3 + this.layers.length * 0.85 + 0.4;
-    this.candlePairs.forEach((pair, i) => { tl.add(() => this._dropPair(i), candleStart + i * 0.3); });
-
-    const ignite = candleStart + this.candlePairs.length * 0.3 + 0.9;
-    this.candles.forEach((c, i) => { tl.add(() => this._ignite(i), ignite + i * 0.05); });
-
-    const finale = ignite + this.candles.length * 0.05 + 0.4;
-    tl.add(() => this._startFinale(), finale);
-    tl.add(() => this._celebrateBurst(), finale + 0.8);
-    tl.add(() => this.setState({ reveal: true }), finale + 0.8);
-    tl.add(() => this.setState({ revealSub: true }), finale + 2.4);
-    tl.add(() => this.setState({ showReplay: true }), finale + 3.6);
-  }
-
-  _dropLayer(i) {
-    const L = this.layers[i]; if (!L) return;
-    L.visible = true; L.position.y = 12;
-    window.gsap.to(L.position, {
-      y: L.userData.targetY, duration: 1.0, ease: 'bounce.out',
-      onComplete: () => { this._plateShake(); this._sugarBurst(L.userData.targetY, i); this._sfx('impact'); }
-    });
-  }
-
-  _dropPair(i) {
-    const pair = this.candlePairs[i]; if (!pair) return;
-    pair.forEach((c, k) => {
-      c.visible = true; c.position.y = 12 + k;
-      window.gsap.to(c.position, {
-        y: c.userData.targetY, duration: 0.85, ease: 'bounce.out',
-        onComplete: () => { if (k === 0) { this._plateShake(0.5); this._sfx('tick'); } }
-      });
-    });
-  }
-
-  _ignite(i) {
-    const c = this.candles[i]; if (!c) return;
-    const flame = c.userData.flame;
-    flame.visible = true;
-    flame.scale.set(0.1, 0.1, 0.1);
-    window.gsap.to(flame.scale, { x: 1, y: 1, z: 1, duration: 0.35, ease: 'back.out(2)' });
-    this._sparkAt(new window.THREE.Vector3(c.userData.x, c.userData.targetY + 0.5, c.userData.z));
-    this._sfx('spark');
-  }
-
-  _startFinale() {
-    this.finale = true;
-    this.cam.orbit = 0.16;
-    const gsap = window.gsap;
-    gsap.to(this.cam, { height: 3.4, duration: 6, ease: 'sine.inOut' });
-    // cake glow up
-    this.layers.forEach(L => gsap.to(L.userData.body.material, { emissiveIntensity: 0.35, duration: 2 }));
-    gsap.to(this.warm, { intensity: 1.6, duration: 2 });
-    gsap.to(this.rimA, { intensity: 1.2, duration: 2 });
-    gsap.to(this.rimB, { intensity: 1.1, duration: 2 });
-    gsap.to(this.ambient, { intensity: 0.9, duration: 2 });
-    gsap.to(this.floaters.material, { opacity: 0.85, duration: 2 });
-    // confetti
-    this.confActive = true; this.confetti.visible = true;
-    gsap.to(this.confetti.material, { opacity: 0.95, duration: 1.2 });
-    // rockets from the sides
-    [-1, 1, -1, 1, -1, 1].forEach((side, k) => setTimeout(() => { if (!this._stop) this._launchRocket(side); }, 200 + k * 450));
-    // periodic fireworks (denser: 1-2 bursts each tick)
-    this._fwTimer = setInterval(() => {
-      if (this._stop || !this.finale) return;
-      const shots = 1 + Math.round(Math.random());
-      for (let s = 0; s < shots; s++) {
-        const p = new window.THREE.Vector3((Math.random() - 0.5) * 12, 4 + Math.random() * 3.5, -1 - Math.random() * 4);
-        this._firework(p);
-      }
-    }, 480);
-    // occasional rocket relaunch to keep the sky busy
-    this._rocketTimer = setInterval(() => {
-      if (this._stop || !this.finale) return;
-      this._launchRocket(Math.random() < 0.5 ? -1 : 1);
     }, 1600);
-    if (this.state.soundOn) this._musicSwell();
+  }
+  resetDemo() { clearInterval(this._t); this.setState({ demoStage: 0, demoPlaying: false }); }
+  jumpStage(n) { clearInterval(this._t); this.setState({ demoStage: n, demoPlaying: false }); }
+
+  approveRegChange() { this.setState({ regChangeApproved: true }); if (this.state.demoStage < 2) this.setState({ demoStage: 2 }); }
+
+  runSciAgents() {
+    if (this.state.sciRunning) return;
+    this.setState({ sciRunning: true, sciStep: 0 });
+    this._sciT = setInterval(() => {
+      this.setState(s => {
+        const n = s.sciStep + 1;
+        if (n >= 4) { clearInterval(this._sciT); return { sciStep: 3, sciRunning: false }; }
+        return { sciStep: n };
+      });
+    }, 1100);
+  }
+  approveSciAgents() { this.setState({ sciApproved: true }); if (this.state.demoStage < 7) this.setState({ demoStage: 7 }); }
+  uploadEvidence() { this.setState({ demoStage: 8 }); }
+
+  colorForStatus(st) {
+    const m = { done: PALETTE.teal, active: PALETTE.amber, pending: PALETTE.gray, blocked: PALETTE.red, critical: PALETTE.red, ok: PALETTE.green };
+    return m[st] || PALETTE.gray;
   }
 
-  // ---------- particle effects ----------
-  _addBurst(count, origin, opts) {
-    const THREE = window.THREE;
-    const pos = new Float32Array(count * 3);
-    for (let i = 0; i < count; i++) { pos[i * 3] = origin.x; pos[i * 3 + 1] = origin.y; pos[i * 3 + 2] = origin.z; }
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
-    const mat = new THREE.PointsMaterial({ size: opts.size, color: opts.color, transparent: true, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false, map: this._glowTex() });
-    const pts = new THREE.Points(geo, mat);
-    this.scene.add(pts);
-    const vel = [];
-    for (let i = 0; i < count; i++) vel.push(opts.vel(i));
-    const maxLife = opts.life;
-    const dyn = {
-      life: maxLife,
-      update: (dt) => {
-        dyn.life -= dt;
-        const arr = geo.attributes.position.array;
-        for (let i = 0; i < count; i++) {
-          vel[i].y -= (opts.gravity || 2.2) * dt;
-          arr[i * 3] += vel[i].x * dt;
-          arr[i * 3 + 1] += vel[i].y * dt;
-          arr[i * 3 + 2] += vel[i].z * dt;
-        }
-        geo.attributes.position.needsUpdate = true;
-        mat.opacity = Math.max(0, dyn.life / maxLife);
-        return dyn.life > 0;
-      },
-      dispose: () => { this.scene.remove(pts); geo.dispose(); mat.dispose(); }
-    };
-    this.dynamics.push(dyn);
-    return dyn;
-  }
-
-  _sugarBurst(y, i) {
-    const THREE = window.THREE;
-    const r = this.layers[i] ? this.layers[i].userData.body.geometry.parameters.radiusTop : 2;
-    this._addBurst(26, new THREE.Vector3(0, y, 0), {
-      size: 0.09, color: 0xffe0b0, life: 0.9, gravity: 3,
-      vel: () => { const a = Math.random() * 6.28; const s = 1.2 + Math.random() * 1.6; return { x: Math.cos(a) * s * (r / 2.2), y: 1.4 + Math.random() * 1.2, z: Math.sin(a) * s * (r / 2.2) }; }
-    });
-  }
-
-  _sparkAt(p) {
-    this._addBurst(16, p, {
-      size: 0.06, color: 0xfff0c0, life: 0.5, gravity: 2,
-      vel: () => { const a = Math.random() * 6.28; const s = 0.8 + Math.random(); return { x: Math.cos(a) * s, y: 0.6 + Math.random(), z: Math.sin(a) * s }; }
-    });
-  }
-
-  _firework(origin) {
-    const colors = [0xffcf6b, 0xf7a8d0, 0xb48fd8, 0xffffff, 0xffd98a];
-    const col = colors[Math.floor(Math.random() * colors.length)];
-    this._addBurst(90, origin, {
-      size: 0.12, color: col, life: 1.5, gravity: 2.4,
-      vel: () => { const a = Math.random() * 6.28; const b = Math.acos(2 * Math.random() - 1); const s = 2.4 + Math.random() * 2.2; return { x: Math.sin(b) * Math.cos(a) * s, y: Math.cos(b) * s, z: Math.sin(b) * Math.sin(a) * s * 0.6 }; }
-    });
-    this._sfx('pop');
-  }
-
-  _celebrateBurst() {
-    const THREE = window.THREE;
-    for (let k = 0; k < 6; k++) {
-      setTimeout(() => {
-        if (this._stop) return;
-        const p = new THREE.Vector3((Math.random() - 0.5) * 11, 4 + Math.random() * 3.5, -1 - Math.random() * 4);
-        this._firework(p);
-      }, k * 160);
-    }
-    this._launchRocket(-1);
-    setTimeout(() => { if (!this._stop) this._launchRocket(1); }, 350);
-  }
-
-  _launchRocket(side) {
-    const THREE = window.THREE;
-    const start = new THREE.Vector3(side * 8, 0.5, -2 - Math.random() * 2);
-    const geo = new THREE.BufferGeometry();
-    geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array([start.x, start.y, start.z]), 3));
-    const mat = new THREE.PointsMaterial({ size: 0.22, color: 0xfff0c0, transparent: true, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false, map: this._glowTex() });
-    const pts = new THREE.Points(geo, mat);
-    this.scene.add(pts);
-    const vel = new THREE.Vector3(-side * (2.2 + Math.random()), 5.5 + Math.random() * 1.5, 0.4 * (Math.random() - 0.5));
-    const cur = start.clone();
-    let trailT = 0;
-    const dyn = {
-      update: (dt) => {
-        vel.y -= 3.5 * dt;
-        cur.addScaledVector(vel, dt);
-        geo.attributes.position.array[0] = cur.x; geo.attributes.position.array[1] = cur.y; geo.attributes.position.array[2] = cur.z;
-        geo.attributes.position.needsUpdate = true;
-        trailT += dt;
-        if (trailT > 0.04) { trailT = 0; this._addBurst(3, cur.clone(), { size: 0.08, color: 0xffcf8a, life: 0.4, gravity: 0.5, vel: () => ({ x: (Math.random() - 0.5) * 0.3, y: (Math.random() - 0.5) * 0.3, z: (Math.random() - 0.5) * 0.3 }) }); }
-        if (vel.y < 0.2) { this._firework(cur.clone()); return false; }
-        return true;
-      },
-      dispose: () => { this.scene.remove(pts); geo.dispose(); mat.dispose(); }
-    };
-    this.dynamics.push(dyn);
-  }
-
-  _plateShake(scale) {
-    const s = scale || 1;
-    const g = window.gsap;
-    g.killTweensOf(this.plateGroup.rotation);
-    g.fromTo(this.plateGroup.rotation, { z: 0.02 * s }, { z: 0, duration: 0.5, ease: 'elastic.out(1.4,0.35)' });
-    g.fromTo(this.plateGroup.position, { y: -0.05 * s }, { y: 0, duration: 0.5, ease: 'elastic.out(1.4,0.35)' });
-  }
-
-  // ---------- render loop ----------
-  _loop() {
-    if (this._stop) return;
-    requestAnimationFrame(() => this._loop());
-    const dt = Math.min(this.clock.getDelta(), 0.05);
-    const t = this.clock.elapsedTime;
-
-    // camera
-    this.cam.angle += this.cam.orbit * dt;
-    const breathe = Math.sin(t * 0.4) * 0.12;
-    const a = this.cam.angle;
-    const rad = this.cam.radius * (this.fit || 1);
-    this.camera.position.set(
-      Math.sin(a) * rad,
-      (this.cam.height + breathe) * (0.55 + 0.45 * (this.fit || 1)),
-      Math.cos(a) * rad
-    );
-    this.camera.lookAt(this.target);
-
-    // floaters drift
-    if (this.floaters) { this.floaters.rotation.y = t * 0.02; this.floaters.position.y = Math.sin(t * 0.3) * 0.2; }
-
-    // flames flicker
-    for (const f of this.flames) {
-      if (!f.visible) continue;
-      const ph = f.userData.phase;
-      const flick = 0.85 + Math.sin(t * 14 + ph) * 0.12 + Math.sin(t * 27 + ph) * 0.06;
-      f.userData.inner.scale.setScalar(flick);
-      f.userData.outer.scale.set(flick * 0.95, flick * 1.05, flick * 0.95);
-      f.userData.outer.position.x = Math.sin(t * 6 + ph) * 0.012;
-      f.userData.inner.position.x = Math.sin(t * 6 + ph) * 0.008;
-      f.userData.glow.material.opacity = 0.7 + Math.sin(t * 12 + ph) * 0.2;
-      f.rotation.z = Math.sin(t * 3 + ph) * 0.05;
-    }
-
-    // confetti
-    if (this.confActive && this.confetti) {
-      const arr = this.confetti.geometry.attributes.position.array;
-      for (let i = 0; i < this.confVel.length; i++) {
-        const v = this.confVel[i];
-        arr[i * 3 + 1] -= v.vy * dt;
-        arr[i * 3] += Math.sin(t * v.sway + v.ph) * 0.6 * dt;
-        if (arr[i * 3 + 1] < -2) arr[i * 3 + 1] = 9 + Math.random() * 4;
-      }
-      this.confetti.geometry.attributes.position.needsUpdate = true;
-    }
-
-    // dynamics
-    for (let i = this.dynamics.length - 1; i >= 0; i--) {
-      if (!this.dynamics[i].update(dt)) { this.dynamics[i].dispose(); this.dynamics.splice(i, 1); }
-    }
-
-    this.renderer.render(this.scene, this.camera);
-  }
-
-  // ---------- reduced motion ----------
-  _staticFinal() {
-    this.layers.forEach(L => { L.visible = true; L.position.y = L.userData.targetY; L.userData.body.material.emissiveIntensity = 0.3; });
-    this.candles.forEach(c => { c.visible = true; c.position.y = c.userData.targetY; c.userData.flame.visible = true; });
-    this.keyLight.intensity = 1.4; this.rimA.intensity = 1.0; this.rimB.intensity = 0.9;
-    this.warm.intensity = 1.2; this.ambient.intensity = 0.85;
-    this.floaters.material.opacity = 0.7;
-    this.cam.radius = 7.2; this.cam.height = 2.8;
-    this.setState({ reveal: true, revealSub: true, showReplay: true });
-  }
-
-  // ---------- replay ----------
-  _replay = () => {
-    if (this.tl) this.tl.kill();
-    if (this._fwTimer) clearInterval(this._fwTimer);
-    if (this._rocketTimer) clearInterval(this._rocketTimer);
-    window.gsap.killTweensOf('*');
-    this.finale = false; this.cam.orbit = 0; this.confActive = false; this.confetti.visible = false;
-    this.confetti.material.opacity = 0;
-    // clear dynamics
-    for (const d of this.dynamics) d.dispose(); this.dynamics = [];
-    // reset lights
-    this.keyLight.intensity = 0; this.rimA.intensity = 0; this.rimB.intensity = 0;
-    this.warm.intensity = 0; this.ambient.intensity = 0.5; this.floaters.material.opacity = 0.5;
-    // reset layers & candles
-    this.layers.forEach((L, i) => { L.visible = false; L.position.set(0, 13 + i * 0.5, 0); L.rotation.set(0, 0, 0); L.userData.body.material.emissiveIntensity = 0; });
-    this.candles.forEach(c => { c.visible = false; c.userData.flame.visible = false; });
-    this.cam.angle = 0; this.cam.radius = 9.5; this.cam.height = 5.2;
-    this.plateGroup.rotation.set(0, 0, 0); this.plateGroup.position.y = 0;
-    this.setState({ reveal: false, revealSub: false, showReplay: false });
-    if (this.reduced) this._staticFinal(); else this._buildTimeline();
-  }
-
-  // ---------- audio (WebAudio) ----------
-  _ensureAudio() {
-    if (this.audio) return;
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return;
-    const ctx = new AC();
-    const master = ctx.createGain();
-    master.gain.value = 0.0; master.connect(ctx.destination);
-    this.audio = { ctx, master };
-  }
-  _startMusic() {
-    this._ensureAudio(); if (!this.audio) return;
-    const { ctx, master } = this.audio;
-    if (ctx.state === 'suspended') ctx.resume();
-    window.gsap.to(master.gain, { value: 0.5, duration: 1.5 });
-    // gentle pad + arpeggio
-    const scale = [261.63, 329.63, 392.0, 493.88, 587.33, 392.0, 329.63, 440.0];
-    let step = 0;
-    this.audio.pad = [];
-    [130.81, 196.0, 261.63].forEach(f => {
-      const o = ctx.createOscillator(); const g = ctx.createGain();
-      o.type = 'sine'; o.frequency.value = f; g.gain.value = 0.06;
-      o.connect(g); g.connect(master); o.start();
-      this.audio.pad.push(o, g);
-    });
-    this.audio.arp = setInterval(() => {
-      if (!this.audio) return;
-      const f = scale[step % scale.length]; step++;
-      const o = ctx.createOscillator(); const g = ctx.createGain();
-      o.type = 'triangle'; o.frequency.value = f;
-      const now = ctx.currentTime;
-      g.gain.setValueAtTime(0, now);
-      g.gain.linearRampToValueAtTime(0.12, now + 0.03);
-      g.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
-      o.connect(g); g.connect(master); o.start(now); o.stop(now + 1);
-    }, 430);
-  }
-  _stopMusic() {
-    if (!this.audio) return;
-    const { ctx, master } = this.audio;
-    if (this.audio.arp) clearInterval(this.audio.arp);
-    if (this.audio.pad) this.audio.pad.forEach(n => { try { n.stop && n.stop(); } catch (e) {} });
-    this.audio.pad = null;
-    window.gsap.to(master.gain, { value: 0, duration: 0.6 });
-  }
-  _musicSwell() {
-    if (!this.audio) return;
-    window.gsap.to(this.audio.master.gain, { value: 0.62, duration: 1.5, yoyo: true, repeat: 1 });
-  }
-  _sfx(kind) {
-    if (!this.state.soundOn) return;
-    this._ensureAudio(); if (!this.audio) return;
-    const { ctx, master } = this.audio;
-    if (ctx.state === 'suspended') ctx.resume();
-    const now = ctx.currentTime;
-    if (kind === 'impact' || kind === 'tick') {
-      const o = ctx.createOscillator(); const g = ctx.createGain();
-      o.type = 'sine'; o.frequency.setValueAtTime(kind === 'impact' ? 140 : 320, now);
-      o.frequency.exponentialRampToValueAtTime(kind === 'impact' ? 60 : 180, now + 0.12);
-      g.gain.setValueAtTime(kind === 'impact' ? 0.35 : 0.12, now);
-      g.gain.exponentialRampToValueAtTime(0.001, now + 0.2);
-      o.connect(g); g.connect(master); o.start(now); o.stop(now + 0.22);
-    } else if (kind === 'spark') {
-      const o = ctx.createOscillator(); const g = ctx.createGain();
-      o.type = 'square'; o.frequency.setValueAtTime(1200, now);
-      o.frequency.exponentialRampToValueAtTime(2600, now + 0.05);
-      g.gain.setValueAtTime(0.05, now); g.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-      o.connect(g); g.connect(master); o.start(now); o.stop(now + 0.09);
-    } else if (kind === 'pop') {
-      const buf = ctx.createBuffer(1, ctx.sampleRate * 0.15, ctx.sampleRate);
-      const d = buf.getChannelData(0);
-      for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2);
-      const src = ctx.createBufferSource(); src.buffer = buf;
-      const g = ctx.createGain(); g.gain.value = 0.18;
-      const f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 900;
-      src.connect(f); f.connect(g); g.connect(master); src.start(now);
-    }
-  }
-  _toggleSound = () => {
-    const on = !this.state.soundOn;
-    this.setState({ soundOn: on, showHint: false });
-    if (on) { this._startMusic(); } else { this._stopMusic(); }
-  }
-
-  // ---------- render ----------
   renderVals() {
-    const R = window.React;
-    const title = this.props.title ?? 'Happy Birthday Hedil';
-    const subtitle = this.props.subtitle ?? 'Wishing you a beautiful year filled with happiness, success and unforgettable moments.';
-    const cA = this.props.titleColorA ?? '#ffd98a';
-    const cB = this.props.titleColorB ?? '#f7a8d0';
-    const reveal = this.state.reveal;
+    const s = this.state;
+    const stage = s.demoStage;
 
-    const titleEls = title.split('').map((ch, i) => R.createElement('span', {
-      key: i,
-      style: {
-        display: 'inline-block', whiteSpace: 'pre',
-        backgroundImage: `linear-gradient(160deg, ${cA} 15%, ${cB} 85%)`,
-        WebkitBackgroundClip: 'text', backgroundClip: 'text', color: 'transparent',
-        opacity: reveal ? 1 : 0,
-        transform: reveal ? 'translateY(0) scale(1)' : 'translateY(28px) scale(0.9)',
-        filter: reveal ? 'drop-shadow(0 0 22px rgba(255,190,120,0.45))' : 'blur(10px)',
-        transition: 'opacity .8s ease, transform .8s cubic-bezier(.2,.85,.25,1), filter .8s ease',
-        transitionDelay: (i * 0.055) + 's'
-      }
-    }, ch));
-
-    const subEl = R.createElement('span', {
-      style: {
-        display: 'inline-block',
-        color: '#fff6ec',
-        fontWeight: 400,
-        textShadow: '0 1px 3px rgba(0,0,0,0.95), 0 2px 14px rgba(0,0,0,0.9)',
-        padding: '10px 22px',
-        borderRadius: '40px',
-        background: 'rgba(18,8,26,0.55)',
-        backdropFilter: 'blur(6px)',
-        border: '1px solid rgba(255,220,180,0.18)',
-        opacity: this.state.revealSub ? 1 : 0,
-        transform: this.state.revealSub ? 'translateY(0)' : 'translateY(14px)',
-        transition: 'opacity 1.1s ease, transform 1.1s ease', transitionDelay: '0.1s'
-      }
-    }, subtitle);
-
-    const btnBase = {
-      cursor: 'pointer', border: '1px solid rgba(255,220,180,0.28)',
-      background: 'rgba(30,18,40,0.45)', backdropFilter: 'blur(8px)',
-      color: '#f2e4ec', fontFamily: "'Jost', sans-serif", fontSize: '13px',
-      letterSpacing: '0.06em', padding: '9px 16px', borderRadius: '40px',
-      transition: 'all .25s ease', display: 'flex', alignItems: 'center', gap: '6px'
-    };
-    const replayBtnStyle = Object.assign({}, btnBase, {
-      opacity: this.state.showReplay ? 1 : 0,
-      pointerEvents: this.state.showReplay ? 'auto' : 'none',
-      transform: this.state.showReplay ? 'translateY(0)' : 'translateY(10px)'
+    const navItems = NAV.map(n => {
+      const active = s.view === n.id;
+      return { ...n, onClick: () => this.setView(n.id), bg: active ? '#1b2740' : 'transparent',
+        textColor: active ? '#f2f4f8' : '#c7cedb', accent: active ? '#7c8aa8' : 'transparent',
+        dotColor: active ? '#e7ebf3' : '#4a5570' };
     });
 
-    const hintStyle = {
-      position: 'absolute', left: '50%', bottom: '74px', transform: 'translateX(-50%)',
-      color: '#d9c3e0', fontSize: '12px', letterSpacing: '0.08em', pointerEvents: 'none',
-      fontFamily: "'Jost', sans-serif",
-      opacity: (this.state.showHint && !this.state.soundOn) ? 1 : 0,
-      transition: 'opacity .6s ease', animation: 'bs-hint 2.6s ease-in-out infinite'
-    };
+    const roleOptions = ROLES;
+    const roleLabel = (ROLES.find(r => r.id === s.role) || ROLES[0]).label;
+    const roleTasks = ROLE_TASKS[s.role] || ROLE_TASKS['regulatory-analyst'];
+
+    // KPIs (react to demo stage)
+    const dossierCompleteness = stage >= 4 && stage < 8 ? 78 : (stage >= 8 ? 96 : 92);
+    const openSignals = stage >= 5 ? 1 : 0;
+    const blockedTenders = (stage >= 7 && stage < 8) ? 1 : 0;
+    const kpis = [
+      { label: 'Affected Markets', value: '2', color: PALETTE.blue },
+      { label: 'Dossier Readiness', value: dossierCompleteness + '%', color: dossierCompleteness < 90 ? PALETTE.amber : PALETTE.green },
+      { label: 'Open Safety Signals', value: String(openSignals), color: openSignals ? PALETTE.red : PALETTE.gray },
+      { label: 'Blocked Tenders', value: String(blockedTenders), color: blockedTenders ? PALETTE.red : PALETTE.green },
+      { label: 'Risk Exposure', value: stage >= 6 ? 'Elevated' : 'Moderate', color: stage >= 6 ? PALETTE.red : PALETTE.amber },
+      { label: 'Avg Review Time', value: '4.6h', color: PALETTE.ink2 }
+    ];
+
+    // Orbit sectors
+    const reqStatus = stage >= 2 ? 'done' : (stage >= 0 ? 'active' : 'pending');
+    const dossierStatus = stage >= 8 ? 'active' : (stage >= 4 ? 'critical' : 'done');
+    const labelStatus = stage >= 8 ? 'done' : (stage >= 7 ? 'critical' : 'done');
+    const signalStatus = stage >= 6 ? 'done' : (stage >= 4 ? 'active' : 'pending');
+    const tenderStatus = stage >= 8 ? 'done' : (stage >= 7 ? 'critical' : 'ok');
+    const riskStatus = stage >= 7 ? 'critical' : (stage >= 5 ? 'active' : 'pending');
+
+    const mkNode = (id, label, status, relationVerb, relationTarget) => ({
+      id, label, status,
+      statusLabel: status === 'done' ? 'Validated' : status === 'active' ? 'In progress' : status === 'critical' ? 'Critical' : status === 'ok' ? 'Compliant' : 'Pending',
+      dot: this.colorForStatus(status),
+      bg: status === 'critical' ? PALETTE.redLight : '#fff',
+      border: status === 'critical' ? PALETTE.red : '#ddd8ce',
+      opacity: s.hoveredNode && s.hoveredNode !== id ? 0.4 : 1,
+      onEnter: () => this.setState({ hoveredNode: id }), onLeave: () => this.setState({ hoveredNode: null }),
+      onClick: () => {}, relation: !!relationVerb, relationVerb, relationTarget
+    });
+
+    const orbitSectors = [
+      { label: 'Regulatory', color: PALETTE.blue, nodes: [
+        mkNode('RC-2201', 'Annex I labeling & PSUR change', reqStatus, 'updates', 'REQ-EU-118'),
+        mkNode('REQ-EU-118', 'PSUR every 12 months + liver warning', reqStatus, 'feeds', 'AMM Dossier EU v5')
+      ]},
+      { label: 'AMM', color: PALETTE.navy, nodes: [
+        mkNode('DOS-EU-0472', 'EU Dossier v5', dossierStatus, 'requires', 'Label v3.0'),
+        mkNode('MOD-1', 'Module 1 — Admin info', dossierStatus === 'critical' ? 'critical' : 'done', 'blocks', 'TR-44')
+      ]},
+      { label: 'Safety', color: PALETTE.red, nodes: [
+        mkNode('S-021', 'Drug X × Liver injury signal', signalStatus, 'invalidates', 'Label v2.1'),
+        mkNode('LBL-2.1', 'Label v2.1', labelStatus, 'supersedes', stage >= 8 ? 'Label v3.0' : '—')
+      ]},
+      { label: 'Tender', color: PALETTE.amber, nodes: [
+        mkNode('TR-44', 'Tender requirement — safety label', tenderStatus, 'supports', 'TR-1183'),
+        mkNode('TR-1183', 'Hospital Procurement, Tunisia', tenderStatus, 'needs', 'Label v3.0')
+      ]},
+      { label: 'Risk', color: PALETTE.violet, nodes: [
+        mkNode('R-07', 'Patient-safety exposure', riskStatus, 'causes', 'Regulatory non-compliance'),
+        mkNode('R-11', 'Commercial exposure', riskStatus === 'critical' ? 'critical' : 'active', 'linked to', 'TR-1183')
+      ]}
+    ];
+
+    const viewModes = ['orbit', 'graph', 'timeline'].map(m => ({
+      label: m.charAt(0).toUpperCase() + m.slice(1), onClick: () => this.setState({ viewMode: m }),
+      bg: s.viewMode === m ? PALETTE.navy : 'transparent', color: s.viewMode === m ? '#fff' : PALETTE.ink2
+    }));
+
+    const ribbonStages = RIBBON_META.map((r, i) => {
+      const st = i < stage ? 'done' : i === stage ? 'active' : 'pending';
+      return { ...r, onClick: () => this.jumpStage(i), color: this.colorForStatus(st),
+        bg: i === stage ? '#faf8f3' : '#fff', textColor: '#1a2130',
+        statusLabel: st === 'done' ? 'Complete' : st === 'active' ? 'In progress' : 'Pending' };
+    });
+
+    const recentDecisions = [
+      { id: 'RV-0231', text: 'Approved obligation extraction for RC-2199 (Tunisia DPM)' },
+      { id: 'RV-0230', text: 'Rejected duplicate signal candidate S-018 (insufficient data)' },
+      { id: 'RV-0229', text: 'Validated CTD Module 3 stability update, EU dossier' }
+    ];
+
+    // Product Control Room
+    const prcTabsList = ['overview', 'markets', 'amm', 'safety', 'tenders', 'evidence', 'risks', 'timeline'];
+    const prcTabs = prcTabsList.map(t => ({
+      id: t, label: t.charAt(0).toUpperCase() + t.slice(1), onClick: () => this.setState({ prcTab: t }),
+      color: s.prcTab === t ? PALETTE.navy : PALETTE.ink2, border: s.prcTab === t ? PALETTE.navy : 'transparent'
+    }));
+    const marketMatrix = [
+      { market: 'European Union', ammStatus: dossierStatus === 'critical' ? 'INCOMPLETE' : 'COMPLETE', ammBg: dossierStatus === 'critical' ? PALETTE.amberLight : PALETTE.greenLight, ammColor: dossierStatus === 'critical' ? PALETTE.amber : PALETTE.green,
+        labelStatus: labelStatus === 'critical' ? 'OUTDATED' : 'VALID', labelBg: labelStatus === 'critical' ? PALETTE.redLight : PALETTE.greenLight, labelColor: labelStatus === 'critical' ? PALETTE.red : PALETTE.green,
+        tenderStatus: tenderStatus === 'critical' ? 'BLOCKED' : 'OK', tenderBg: tenderStatus === 'critical' ? PALETTE.redLight : PALETTE.greenLight, tenderColor: tenderStatus === 'critical' ? PALETTE.red : PALETTE.green },
+      { market: 'Tunisia', ammStatus: 'COMPLETE', ammBg: PALETTE.greenLight, ammColor: PALETTE.green,
+        labelStatus: 'VALID', labelBg: PALETTE.greenLight, labelColor: PALETTE.green,
+        tenderStatus: tenderStatus === 'critical' ? 'BLOCKED' : 'OK', tenderBg: tenderStatus === 'critical' ? PALETTE.redLight : PALETTE.greenLight, tenderColor: tenderStatus === 'critical' ? PALETTE.red : PALETTE.green }
+    ];
+    const unresolvedActions = [
+      { id: 'VA-09', text: 'Update Annex I liver-injury warning (safety-driven variation)' },
+      { id: 'VA-07', text: 'Refresh Module 3 stability data, EU site' },
+      { id: 'REQ-118', text: 'Submit revised PSUR periodicity commitment' },
+      { id: 'TR-44', text: 'Upload validated label version to unblock tender' }
+    ];
+
+    // Regulatory intelligence
+    const regSources = [
+      { name: 'EMA Official Journal', authority: 'EMA', market: 'EU', healthColor: PALETTE.green, healthLabel: 'Healthy', lastPoll: '4m ago', bg: '#faf8f3', onClick: () => {} },
+      { name: 'DPM Circulars', authority: 'DPM Tunisia', market: 'Tunisia', healthColor: PALETTE.green, healthLabel: 'Healthy', lastPoll: '31m ago', bg: '#fff', onClick: () => {} },
+      { name: 'EDQM Monographs', authority: 'EDQM', market: 'EU', healthColor: PALETTE.amber, healthLabel: 'Degraded', lastPoll: '6h ago', bg: '#fff', onClick: () => {} },
+      { name: 'WHO Prequalification', authority: 'WHO', market: 'Global', healthColor: PALETTE.gray, healthLabel: 'Idle', lastPoll: '2d ago', bg: '#fff', onClick: () => {} }
+    ];
 
     return {
-      setMount: (el) => { this.mount = el; },
-      titleEls, subEl,
-      replay: this._replay,
-      toggleSound: this._toggleSound,
-      soundLabel: this.state.soundOn ? '♪ Son activé' : '♪ Son',
-      soundBtnStyle: btnBase,
-      replayBtnStyle,
-      hintStyle
+      navWidth: s.navCollapsed ? '64px' : '232px', navExpanded: !s.navCollapsed, navCollapsedFlag: s.navCollapsed,
+      navItems, toggleNav: () => this.toggleNav(),
+      role: s.role, roleOptions, roleLabel, onRoleChange: (e) => this.onRoleChange(e),
+      goToProductRoom: () => this.setView('product-room'),
+
+      isCommandCenter: s.view === 'command-center', isProducts: s.view === 'products', isProductRoom: s.view === 'product-room',
+      isRegulatory: s.view === 'regulatory', isDossier: s.view === 'dossier', isPV: s.view === 'pv', isSciAgents: s.view === 'sciagents',
+      isTender: s.view === 'tender', isReview: s.view === 'review', isRisk: s.view === 'risk', isEvidence: s.view === 'evidence',
+      isAudit: s.view === 'audit', isAdmin: s.view === 'admin',
+
+      demoStageDisplay: stage, demoButtonLabel: s.demoPlaying ? 'Pause' : (stage >= 8 ? 'Replay' : 'Play propagation'),
+      toggleDemo: () => this.toggleDemo(), resetDemo: () => this.resetDemo(),
+      kpis, orbitSectors, viewModes, roleTasks, recentDecisions, ribbonStages,
+
+      prcTabs, prcTabLabel: (prcTabs.find(t => t.id === s.prcTab) || prcTabs[0]).label,
+      prcIsOverview: s.prcTab === 'overview', prcIsOther: s.prcTab !== 'overview',
+      safetyVersionDisplay: stage >= 8 ? '3.0' : '2.1', dossierCompleteness,
+      tenderStatusColor: stage >= 7 && stage < 8 ? PALETTE.red : PALETTE.green,
+      tenderStatusText: stage >= 7 && stage < 8 ? 'Blocked' : (stage >= 8 ? 'Ready for review' : 'On track'),
+      marketMatrix, unresolvedActions,
+
+      regSources, regChangeIsPending: !s.regChangeApproved, regChangeIsApproved: s.regChangeApproved,
+      regChangeStatusBg: s.regChangeApproved ? PALETTE.tealLight : PALETTE.amberLight,
+      regChangeStatusColor: s.regChangeApproved ? PALETTE.teal : PALETTE.amber,
+      regChangeStatusLabel: s.regChangeApproved ? 'Approved' : 'Pending review',
+      approveRegChange: () => this.approveRegChange(),
+
+      dossierStageLabel: stage >= 4 && stage < 8 ? 'Variation — under review' : (stage >= 8 ? 'Variation submitted' : 'Post-AMM maintenance'),
+      dossierStageColor: stage >= 4 && stage < 8 ? PALETTE.amber : PALETTE.teal,
+      dossierCompletenessColor: dossierCompleteness < 90 ? PALETTE.amber : PALETTE.green,
+      dossierLifecycle: ['Pre-submission','Assembly','Completeness review','Technical validation','Submission','Authority questions','Decision','Post-AMM','Variation','Renewal','Transfer'].map((l, i) => {
+        const active = i === 8 && stage >= 4 && stage < 8;
+        const done = i < 7 || (i === 7 && stage < 4);
+        return { label: l, color: active ? PALETTE.amber : (done ? PALETTE.teal : '#ddd8ce'),
+          bg: active ? PALETTE.amberLight : '#fff', textColor: active ? PALETTE.amber : (done ? PALETTE.teal : PALETTE.gray) };
+      }),
+      ctdModules: [
+        { label: 'Module 1', expected: 8, present: stage >= 4 && stage < 8 ? 6 : 8, missing: stage >= 4 && stage < 8 ? 2 : 0, missingColor: stage >= 4 && stage < 8 ? PALETTE.red : PALETTE.gray,
+          statusLabel: stage >= 4 && stage < 8 ? 'INCOMPLETE' : 'COMPLETE', statusBg: stage >= 4 && stage < 8 ? PALETTE.redLight : PALETTE.greenLight, statusColor: stage >= 4 && stage < 8 ? PALETTE.red : PALETTE.green },
+        { label: 'Module 2', expected: 5, present: 5, missing: 0, missingColor: PALETTE.gray, statusLabel: 'COMPLETE', statusBg: PALETTE.greenLight, statusColor: PALETTE.green },
+        { label: 'Module 3', expected: 12, present: 11, missing: 1, missingColor: PALETTE.amber, statusLabel: 'UNDER REVIEW', statusBg: PALETTE.amberLight, statusColor: PALETTE.amber },
+        { label: 'Module 4', expected: 4, present: 4, missing: 0, missingColor: PALETTE.gray, statusLabel: 'COMPLETE', statusBg: PALETTE.greenLight, statusColor: PALETTE.green },
+        { label: 'Module 5', expected: 9, present: 9, missing: 0, missingColor: PALETTE.gray, statusLabel: 'COMPLETE', statusBg: PALETTE.greenLight, statusColor: PALETTE.green }
+      ],
+      dossierDocs: [
+        { name: 'Annex I — Summary of Product Characteristics', version: stage >= 8 ? '3.0' : '2.1', expiry: '—', statusLabel: stage >= 7 && stage < 8 ? 'OUTDATED' : 'VALID', statusBg: stage >= 7 && stage < 8 ? PALETTE.redLight : PALETTE.greenLight, statusColor: stage >= 7 && stage < 8 ? PALETTE.red : PALETTE.green, onClick: () => this.setState({ selectedDocId: 'doc-1' }) },
+        { name: 'Cover Letter & Application Form', version: '4', expiry: '—', statusLabel: 'VALID', statusBg: PALETTE.greenLight, statusColor: PALETTE.green, onClick: () => this.setState({ selectedDocId: 'doc-2' }) },
+        { name: 'GMP Certificate — Manufacturing Site', version: '2', expiry: '2026-11-02', statusLabel: 'EXPIRING', statusBg: PALETTE.amberLight, statusColor: PALETTE.amber, onClick: () => this.setState({ selectedDocId: 'doc-3' }) },
+        { name: 'PSUR Commitment Letter', version: stage >= 2 ? '2' : '1', expiry: '—', statusLabel: stage >= 4 && stage < 8 ? 'UNDER REVIEW' : 'VALID', statusBg: stage >= 4 && stage < 8 ? PALETTE.amberLight : PALETTE.greenLight, statusColor: stage >= 4 && stage < 8 ? PALETTE.amber : PALETTE.green, onClick: () => this.setState({ selectedDocId: 'doc-4' }) }
+      ],
+      selectedDoc: { name: 'Cover Letter & Application Form', ctd: 'Module 1.0', version: '4', issued: '2024-02-11', expiry: '—', checksum: '8f2a...c91e' },
+
+      pvStatusLabel: stage >= 6 ? 'Validated — action required' : (stage >= 4 ? 'Under scientific investigation' : 'Monitoring'),
+      pvStatusColor: stage >= 6 ? PALETTE.teal : (stage >= 4 ? PALETTE.violet : PALETTE.gray),
+      pvShowSciAgentsButton: stage >= 4,
+      openSciAgents: () => this.setView('sciagents'),
+      pvMetrics: [
+        { label: 'Reports', value: '63' }, { label: 'Duplicates', value: '18' }, { label: 'Unique', value: '45' },
+        { label: 'Serious', value: '12' }, { label: 'Median Onset', value: '9d' }, { label: 'ROR', value: '3.4' },
+        { label: 'PRR', value: '2.9' }, { label: 'Trend', value: '↑ 18%' }
+      ],
+      pvTimeline: [12,18,22,28,35,44,52,60,58,63].map(v => ({ h: Math.round(v * 0.9) })),
+      pvSeriousness: [
+        { label: 'Serious', count: 12, pct: 27, color: PALETTE.red },
+        { label: 'Non-serious', count: 33, pct: 73, color: PALETTE.blue },
+        { label: 'Fatal outcome', count: 1, pct: 2, color: PALETTE.red }
+      ],
+
+      sciRunButtonLabel: s.sciRunning ? 'Running…' : (s.sciStep >= 3 ? 'Re-run' : 'Run Investigation'),
+      sciNeedsReview: s.sciStep >= 3 && !s.sciApproved, sciIsApproved: s.sciApproved,
+      runSciAgents: () => this.runSciAgents(), approveSciAgents: () => this.approveSciAgents(),
+      sciAgentSteps: [
+        { name: 'Ontologist', input: 'Drug X, Liver injury', output: 'Resolved to Hetionet entities: Compound::DrugX, Disease::HepaticInjury', duration: '4.2s', cost: '$0.02' },
+        { name: 'Proposer', input: 'Entity pair + case data', output: 'Proposes CYP-mediated hepatotoxic metabolite pathway', duration: '11.8s', cost: '$0.09' },
+        { name: 'Expander', input: 'Candidate pathway', output: '4 supporting graph paths found via Pathway::B, 2 contradicting studies flagged', duration: '18.4s', cost: '$0.14' },
+        { name: 'Critic', input: 'Full evidence set', output: 'Mechanistic score 0.72 · grounding passed · quality gate passed · sample-size caveat on contradicting studies', duration: '7.1s', cost: '$0.05' }
+      ].map((a, i) => ({ ...a, opacity: s.sciStep >= i ? 1 : 0.35,
+        statusLabel: s.sciStep > i || s.sciStep >= 3 ? 'Done' : s.sciStep === i ? 'Running' : 'Queued',
+        statusColor: s.sciStep > i || s.sciStep >= 3 ? PALETTE.teal : s.sciStep === i ? PALETTE.amber : PALETTE.gray })),
+      sciPath: [
+        { node: 'Drug X', verb: 'targets' }, { node: 'Protein A', verb: 'participates in' }, { node: 'Pathway B', verb: 'associated with' },
+        { node: 'Liver injury', verb: '' }
+      ],
+
+      tenderStatusBg: stage >= 7 && stage < 8 ? PALETTE.redLight : (stage >= 8 ? PALETTE.greenLight : PALETTE.amberLight),
+      tenderIsBlocked: stage >= 7 && stage < 8, tenderIsReady: stage >= 8,
+      uploadEvidence: () => this.uploadEvidence(),
+      tenderRows: [
+        { requirement: 'Valid AMM', type: 'Mandatory', evidence: 'AMM Cert. EU-4471', validity: 'Valid', status: 'PASS', bg: PALETTE.greenLight, color: PALETTE.green, onClick: () => {} },
+        { requirement: 'Valid GMP', type: 'Mandatory', evidence: 'GMP Cert. #2291', validity: '2026-11', status: 'PASS', bg: PALETTE.greenLight, color: PALETTE.green, onClick: () => {} },
+        { requirement: 'Current safety label', type: 'Mandatory', evidence: stage >= 8 ? 'Label v3.0' : 'Label v2.1', validity: stage >= 8 ? 'Current' : 'Superseded',
+          status: stage >= 7 && stage < 8 ? 'BLOCKED' : 'PASS', bg: stage >= 7 && stage < 8 ? PALETTE.redLight : PALETTE.greenLight, color: stage >= 7 && stage < 8 ? PALETTE.red : PALETTE.green, onClick: () => this.setView('dossier') },
+        { requirement: 'Shelf life ≥ 24m', type: 'Scored', evidence: 'Stability Report R-19', validity: 'Valid', status: 'PASS', bg: PALETTE.greenLight, color: PALETTE.green, onClick: () => {} },
+        { requirement: 'Cold-chain declaration', type: 'Mandatory', evidence: 'Not required (ambient)', validity: 'N/A', status: 'PASS', bg: PALETTE.greenLight, color: PALETTE.green, onClick: () => {} },
+        { requirement: 'Delivery lead time ≤ 30d', type: 'Scored', evidence: 'Logistics Plan LP-08', validity: 'Valid', status: 'PASS', bg: PALETTE.greenLight, color: PALETTE.green, onClick: () => {} }
+      ],
+
+      reviewCount: 5,
+      reviewItems: [
+        { id: 'rv-1', title: 'Approve RC-2201 requirement', module: 'REGULATORY', moduleColor: PALETTE.blue, reason: 'New PSUR periodicity + label obligation', confidence: '0.94', due: 'today', onClick: () => this.setState({ selectedReviewId: 'rv-1' }), bg: s.selectedReviewId === 'rv-1' ? '#faf8f3' : '#fff' },
+        { id: 'rv-2', title: 'Validate SciAgents finding SCI-4471', module: 'PV', moduleColor: PALETTE.red, reason: 'Mechanism score 0.72, gate passed', confidence: '0.72', due: '2h', onClick: () => this.setState({ selectedReviewId: 'rv-2' }), bg: s.selectedReviewId === 'rv-2' ? '#faf8f3' : '#fff' },
+        { id: 'rv-3', title: 'Correct extracted obligation, Tunisia DPM', module: 'REGULATORY', moduleColor: PALETTE.blue, reason: 'Ambiguous transposition date', confidence: '0.61', due: '1d', onClick: () => this.setState({ selectedReviewId: 'rv-3' }), bg: s.selectedReviewId === 'rv-3' ? '#faf8f3' : '#fff' },
+        { id: 'rv-4', title: 'Tender evidence replacement', module: 'TENDER', moduleColor: PALETTE.amber, reason: 'Label v3.0 supersedes v2.1', confidence: '0.99', due: '3d', onClick: () => this.setState({ selectedReviewId: 'rv-4' }), bg: s.selectedReviewId === 'rv-4' ? '#faf8f3' : '#fff' },
+        { id: 'rv-5', title: 'Module 3 stability update', module: 'AMM', moduleColor: PALETTE.navy, reason: 'New batch data submitted', confidence: '0.88', due: '5d', onClick: () => this.setState({ selectedReviewId: 'rv-5' }), bg: s.selectedReviewId === 'rv-5' ? '#faf8f3' : '#fff' }
+      ],
+      selectedReview: {
+        'rv-1': { title: 'Approve RC-2201 requirement', module: 'Regulatory Intelligence', sourceVersion: '5', ifApproved: 'REQ-EU-118 updates; EU dossier recalculates and flags Module 1 as incomplete.', ifRejected: 'Requirement stays at prior periodicity; risk of non-compliance at next inspection.', confidence: '0.94', limitations: 'Tunisia transposition date unconfirmed' },
+        'rv-2': { title: 'Validate SciAgents finding SCI-4471', module: 'Pharmacovigilance', sourceVersion: '1', ifApproved: 'VA-09 variation action created; label update initiated.', ifRejected: 'Signal returns to monitoring; no label action taken.', confidence: '0.72', limitations: 'Contradicting studies have small sample sizes' },
+        'rv-3': { title: 'Correct extracted obligation, Tunisia DPM', module: 'Regulatory Intelligence', sourceVersion: '2', ifApproved: 'Corrected obligation text replaces AI extraction.', ifRejected: 'Original extraction stands, flagged low-confidence.', confidence: '0.61', limitations: 'Source document has ambiguous date format' },
+        'rv-4': { title: 'Tender evidence replacement', module: 'Tender Copilot', sourceVersion: '3.0', ifApproved: 'TR-1183 recalculates; requirement moves to PASS.', ifRejected: 'Tender remains blocked past deadline risk window.', confidence: '0.99', limitations: 'None material' },
+        'rv-5': { title: 'Module 3 stability update', module: 'AMM Dossier', sourceVersion: '2', ifApproved: 'Stability section marked current; consistency warning cleared.', ifRejected: 'Warning persists on dossier completeness score.', confidence: '0.88', limitations: 'Awaiting 36-month data point' }
+      }[s.selectedReviewId],
+
+      riskChain: [
+        { label: 'Outdated safety label', bg: PALETTE.redLight, color: PALETTE.red, hasNext: true },
+        { label: 'Regulatory non-compliance', bg: PALETTE.blueLight, color: PALETTE.blue, hasNext: true },
+        { label: 'Tender rejection', bg: PALETTE.amberLight, color: PALETTE.amber, hasNext: true },
+        { label: 'Commercial loss', bg: PALETTE.amberLight, color: PALETTE.amber, hasNext: true },
+        { label: 'Liability exposure', bg: PALETTE.redLight, color: PALETTE.red, hasNext: false }
+      ],
+      risks: [
+        { name: 'Patient-safety exposure — hepatotoxicity signal', probability: 'Medium', impact: 'High', residual: riskStatus === 'critical' ? 'High' : 'Medium', bg: riskStatus === 'critical' ? PALETTE.redLight : PALETTE.amberLight, color: riskStatus === 'critical' ? PALETTE.red : PALETTE.amber, owner: 'PV Officer' },
+        { name: 'Regulatory non-compliance — PSUR periodicity', probability: 'Low', impact: 'High', residual: 'Medium', bg: PALETTE.amberLight, color: PALETTE.amber, owner: 'Reg. Analyst' },
+        { name: 'Tender value at risk — TR-1183', probability: 'Medium', impact: 'Medium', residual: stage >= 8 ? 'Low' : 'High', bg: stage >= 8 ? PALETTE.greenLight : PALETTE.redLight, color: stage >= 8 ? PALETTE.green : PALETTE.red, owner: 'Tender Manager' },
+        { name: 'Operational continuity — source degradation (EDQM)', probability: 'Low', impact: 'Low', residual: 'Low', bg: PALETTE.greenLight, color: PALETTE.green, owner: 'Administrator' },
+        { name: 'Product liability exposure', probability: 'Low', impact: 'High', residual: 'Medium', bg: PALETTE.amberLight, color: PALETTE.amber, owner: 'Executive' }
+      ],
+
+      evidenceDocs: [
+        { name: 'Annex I — SPC', version: stage >= 8 ? '3.0' : '2.1', source: 'EMA', checksum: '4c1e…a90b', status: stage >= 7 && stage < 8 ? 'OUTDATED' : 'VALIDATED', bg: stage >= 7 && stage < 8 ? PALETTE.redLight : PALETTE.greenLight, color: stage >= 7 && stage < 8 ? PALETTE.red : PALETTE.green },
+        { name: 'GMP Certificate', version: '2', source: 'ANSM', checksum: '9f02…c31d', status: 'EXPIRING', bg: PALETTE.amberLight, color: PALETTE.amber },
+        { name: 'Stability Report R-19', version: '1', source: 'Internal QC', checksum: '77ab…5e2f', status: 'VALIDATED', bg: PALETTE.greenLight, color: PALETTE.green },
+        { name: 'PSUR Commitment Letter', version: stage >= 2 ? '2' : '1', source: 'Regulatory Affairs', checksum: 'e21c…904a', status: stage >= 4 && stage < 8 ? 'UNDER REVIEW' : 'VALIDATED', bg: stage >= 4 && stage < 8 ? PALETTE.amberLight : PALETTE.greenLight, color: stage >= 4 && stage < 8 ? PALETTE.amber : PALETTE.green },
+        { name: 'Label v2.1 (superseded)', version: '2.1', source: 'EMA', checksum: '1a44…77c2', status: stage >= 8 ? 'SUPERSEDED' : 'VALIDATED', bg: stage >= 8 ? PALETTE.grayLight : PALETTE.greenLight, color: stage >= 8 ? PALETTE.gray : PALETTE.green }
+      ],
+
+      showLiveStrip: stage > 0 && stage < 8,
+      liveStripText: stage > 0 && stage < 8 ? (RIBBON_META[stage] ? RIBBON_META[stage].detail + ' — ' + RIBBON_META[stage].label : '') : '',
+      auditEvents: RIBBON_META.map((r, i) => ({
+        ts: r.time, type: ['source.polled','document.version.detected','regulatory.change.approved','requirement.updated','dossier.recalculated','signal.detected','scientific_evidence.ready','safety_knowledge.updated','tender.ready_for_review'][i],
+        detail: r.detail, actor: r.who, color: i <= stage ? PALETTE.teal : PALETTE.gray, latency: (120 + i * 30) + 'ms'
+      })),
+
+      adminSources: [
+        { name: 'EMA Official Journal', status: 'Healthy', color: PALETTE.green },
+        { name: 'DPM Circulars (Tunisia)', status: 'Healthy', color: PALETTE.green },
+        { name: 'EDQM Monographs', status: 'Degraded', color: PALETTE.amber },
+        { name: 'WHO Prequalification', status: 'Idle', color: PALETTE.gray }
+      ],
+      adminModels: [
+        { name: 'Extraction Engine', version: 'v2.3' }, { name: 'SciAgents Ontologist', version: 'v1.8' },
+        { name: 'SciAgents Critic', version: 'v1.8' }, { name: 'Signal Detection', version: 'v3.1' }
+      ],
+      adminUsers: [
+        { name: 'M. Haddad', role: 'Regulatory Affairs Analyst' }, { name: 'Dr. L. Bennani', role: 'Pharmacovigilance Officer' },
+        { name: 'S. Karray', role: 'Tender Manager' }, { name: 'A. Nasri', role: 'Qualified Reviewer' }
+      ]
     };
   }
 }
